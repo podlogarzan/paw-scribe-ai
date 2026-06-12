@@ -14,13 +14,266 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          pet_id: string
+          summary: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pet_id: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pet_id?: string
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          mime_type: string | null
+          pet_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          mime_type?: string | null
+          pet_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          mime_type?: string | null
+          pet_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entries: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          occurred_at: string
+          pet_id: string
+          reminder_at: string | null
+          source_conversation_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          occurred_at: string
+          pet_id: string
+          reminder_at?: string | null
+          source_conversation_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          occurred_at?: string
+          pet_id?: string
+          reminder_at?: string | null
+          source_conversation_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entries_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entry_photos: {
+        Row: {
+          created_at: string
+          entry_id: string
+          id: string
+          mime_type: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_photos_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          created_entry_id: string | null
+          id: string
+          image_paths: string[] | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          created_entry_id?: string | null
+          id?: string
+          image_paths?: string[] | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          created_entry_id?: string | null
+          id?: string
+          image_paths?: string[] | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_created_entry_id_fkey"
+            columns: ["created_entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pets: {
+        Row: {
+          allergies: string[] | null
+          avatar_path: string | null
+          birth_date: string | null
+          breed: string | null
+          created_at: string
+          id: string
+          microchip_no: string | null
+          name: string
+          neutered: boolean | null
+          notes: string | null
+          sex: string | null
+          species: string
+          updated_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          avatar_path?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          created_at?: string
+          id?: string
+          microchip_no?: string | null
+          name: string
+          neutered?: boolean | null
+          notes?: string | null
+          sex?: string | null
+          species: string
+          updated_at?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          allergies?: string[] | null
+          avatar_path?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          created_at?: string
+          id?: string
+          microchip_no?: string | null
+          name?: string
+          neutered?: boolean | null
+          notes?: string | null
+          sex?: string | null
+          species?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_owns_pet: { Args: { _pet_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
