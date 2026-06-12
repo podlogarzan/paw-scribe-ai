@@ -5,17 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * PetVet — warm wellness journal aesthetic.
+ * Background #FAFAF8, primary #4A7C59 (forest green),
+ * danger #C0392B, AI accent #7B6CF6, DM Sans throughout.
  */
 
 @theme inline {
@@ -26,6 +18,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -46,6 +40,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-soft: var(--ai-soft);
+  --color-appointment: var(--appointment);
+  --color-vaccination: var(--vaccination);
+  --color-health: var(--health);
+  --color-note: var(--note);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -59,29 +60,43 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06);
+  --shadow-floating: 0 8px 24px -8px rgb(0 0 0 / 0.18);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --radius: 1rem;
+  /* Warm off-white background #FAFAF8 */
+  --background: oklch(0.984 0.004 95);
+  --foreground: oklch(0.22 0.02 150);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.22 0.02 150);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --popover-foreground: oklch(0.22 0.02 150);
+  /* Forest green #4A7C59 */
+  --primary: oklch(0.52 0.09 150);
+  --primary-foreground: oklch(0.99 0.005 95);
+  --secondary: oklch(0.95 0.012 120);
+  --secondary-foreground: oklch(0.3 0.04 150);
+  --muted: oklch(0.95 0.008 95);
+  --muted-foreground: oklch(0.5 0.015 140);
+  --accent: oklch(0.93 0.03 145);
+  --accent-foreground: oklch(0.3 0.05 150);
+  /* Danger #C0392B */
+  --destructive: oklch(0.55 0.19 28);
+  --destructive-foreground: oklch(0.99 0.005 95);
+  --border: oklch(0.92 0.008 95);
+  --input: oklch(0.92 0.008 95);
+  --ring: oklch(0.52 0.09 150);
+  /* AI accent #7B6CF6 */
+  --ai: oklch(0.62 0.18 290);
+  --ai-foreground: oklch(0.99 0.005 95);
+  --ai-soft: oklch(0.95 0.04 290);
+  /* Entry dot colors */
+  --appointment: oklch(0.62 0.18 250); /* #3B82F6 */
+  --vaccination: oklch(0.68 0.18 145); /* #22C55E */
+  --health: oklch(0.62 0.22 25);       /* #EF4444 */
+  --note: oklch(0.68 0.01 250);        /* #9CA3AF */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -98,25 +113,32 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.18 0.01 150);
+  --foreground: oklch(0.96 0.005 95);
+  --card: oklch(0.22 0.015 150);
+  --card-foreground: oklch(0.96 0.005 95);
+  --popover: oklch(0.22 0.015 150);
+  --popover-foreground: oklch(0.96 0.005 95);
+  --primary: oklch(0.62 0.1 150);
+  --primary-foreground: oklch(0.16 0.01 150);
+  --secondary: oklch(0.26 0.02 150);
+  --secondary-foreground: oklch(0.96 0.005 95);
+  --muted: oklch(0.26 0.02 150);
+  --muted-foreground: oklch(0.7 0.01 140);
+  --accent: oklch(0.28 0.04 150);
+  --accent-foreground: oklch(0.96 0.005 95);
+  --destructive: oklch(0.6 0.2 28);
+  --destructive-foreground: oklch(0.99 0.005 95);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --ring: oklch(0.62 0.1 150);
+  --ai: oklch(0.68 0.18 290);
+  --ai-foreground: oklch(0.99 0.005 95);
+  --ai-soft: oklch(0.32 0.06 290);
+  --appointment: oklch(0.68 0.18 250);
+  --vaccination: oklch(0.72 0.18 145);
+  --health: oklch(0.68 0.22 25);
+  --note: oklch(0.6 0.01 250);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -140,5 +162,22 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Mobile-first app shell helpers */
+@layer components {
+  .app-shell {
+    @apply mx-auto flex min-h-screen w-full max-w-md flex-col bg-background;
+  }
+  .soft-card {
+    @apply rounded-2xl bg-card shadow-[var(--shadow-soft)];
   }
 }
