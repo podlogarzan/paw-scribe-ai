@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
+import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Heart, ShieldAlert } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
@@ -75,9 +76,8 @@ function ChatThreadPage() {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
+  function handleSubmit(message: PromptInputMessage) {
+    const text = (message.text ?? input).trim();
     if (!text || isLoading) return;
     sendMessage({ text });
     setInput("");
@@ -112,14 +112,14 @@ function ChatThreadPage() {
             const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             if (m.role === "user") {
               return (
-                <Message key={m.id} from="user">
-                  <MessageContent>{text}</MessageContent>
-                </Message>
+              <Message key={m.id} from="user">
+                <MessageContent>{text}</MessageContent>
+              </Message>
               );
             }
             return (
               <Message key={m.id} from="assistant">
-                <MessageContent variant="flat">
+                <MessageContent className="!bg-transparent !p-0">
                   <MessageResponse>{text}</MessageResponse>
                 </MessageContent>
               </Message>
@@ -128,7 +128,7 @@ function ChatThreadPage() {
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
             <Message from="assistant">
-              <MessageContent variant="flat">
+              <MessageContent className="!bg-transparent !p-0">
                 <Shimmer>Thinking…</Shimmer>
               </MessageContent>
             </Message>

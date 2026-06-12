@@ -19,7 +19,8 @@ export const Route = createFileRoute("/api/chat")({
           conversationId?: string;
           petId?: string;
         };
-        if (!Array.isArray(body.messages)) {
+        const incoming = body.messages;
+        if (!Array.isArray(incoming)) {
           return new Response("messages required", { status: 400 });
         }
 
@@ -32,11 +33,11 @@ export const Route = createFileRoute("/api/chat")({
         const result = streamText({
           model,
           system: SYSTEM_PROMPT,
-          messages: await convertToModelMessages(body.messages),
+          messages: await convertToModelMessages(incoming),
         });
 
         const response = result.toUIMessageStreamResponse({
-          originalMessages: body.messages,
+          originalMessages: incoming,
           onFinish: async ({ messages }) => {
             if (!body.conversationId) return;
             try {
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/api/chat")({
               );
 
               const last = messages[messages.length - 1];
-              const userMsg = body.messages[body.messages.length - 1];
+              const userMsg = incoming[incoming.length - 1];
               const userText = userMsg?.parts
                 ?.map((p: any) => (p.type === "text" ? p.text : ""))
                 .join("") ?? "";
