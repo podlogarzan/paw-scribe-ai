@@ -12,7 +12,7 @@ export function BottomTabBar() {
   const { pathname } = useLocation();
   return (
     <nav
-      className="sticky bottom-0 z-30 mt-auto border-t border-border bg-card/95 backdrop-blur"
+      className="sticky bottom-0 z-30 mt-auto border-t border-border bg-card/95 backdrop-blur md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-md items-stretch">
