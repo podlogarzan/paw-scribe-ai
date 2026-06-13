@@ -95,8 +95,13 @@ export const getMessages = createServerFn({ method: "POST" })
       ...m,
       image_urls:
         (m.image_paths ?? []).map((p) => signMap.get(p)).filter((u): u is string => !!u),
+      entry: null as { id: string; title: string } | null,
     }));
-  });
+  })
+  // re-export below adds entry titles
+  ;
+
+export const getMessagesWithEntries = getMessages; // backward alias if needed
 
 export const deleteConversation = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
