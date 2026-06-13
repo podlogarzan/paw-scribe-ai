@@ -1,7 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -10,27 +7,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "A calm pet health journal with an AI care companion." },
     ],
   }),
-  component: Index,
+  beforeLoad: () => {
+    throw redirect({ to: "/home", replace: true });
+  },
+  component: () => null,
 });
-
-function Index() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!mounted) return;
-      if (data.user) navigate({ to: "/home", replace: true });
-      else navigate({ to: "/auth", replace: true });
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [navigate]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-sm text-muted-foreground">Loading PetVet…</div>
-    </div>
-  );
-}
