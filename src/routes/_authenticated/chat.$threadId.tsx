@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-import { Heart, ShieldAlert } from "lucide-react";
+import { Heart, History, Plus, ShieldAlert, Trash2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
 import { BottomTabBar } from "@/components/app/BottomTabBar";
@@ -22,7 +23,20 @@ import {
   PromptInputFooter,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { getMessages } from "@/lib/conversations.functions";
+import {
+  createConversation,
+  deleteConversation,
+  getMessages,
+  listConversations,
+} from "@/lib/conversations.functions";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { useActivePet } from "@/stores/active-pet";
 import { toast } from "sonner";
 
@@ -35,12 +49,22 @@ function ChatThreadPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fetchMessages = useServerFn(getMessages);
+  const fetchConversations = useServerFn(listConversations);
+  const createConv = useServerFn(createConversation);
+  const deleteConv = useServerFn(deleteConversation);
   const activePetId = useActivePet((s) => s.activePetId);
   const [input, setInput] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const msgsQ = useQuery({
     queryKey: ["messages", threadId],
     queryFn: () => fetchMessages({ data: { conversationId: threadId } }),
+  });
+
+  const convosQ = useQuery({
+    queryKey: ["conversations", activePetId],
+    queryFn: () => fetchConversations({ data: { petId: activePetId! } }),
+    enabled: !!activePetId,
   });
 
   const initialMessages: UIMessage[] = useMemo(
@@ -67,7 +91,11 @@ function ChatThreadPage() {
     messages: initialMessages,
     transport,
     onError: (e) => toast.error(e.message || "Chat error"),
-    onFinish: () => qc.invalidateQueries({ queryKey: ["entries"] }),
+    onFinish: () => {
+      qc.invalidateQueries({ queryKey: ["entries"] });
+      qc.invalidateQueries({ queryKey: ["conversations", activePetId] });
+      qc.invalidateQueries({ queryKey: ["messages", threadId] });
+    },
   });
 
   useEffect(() => {
@@ -83,15 +111,111 @@ function ChatThreadPage() {
     setInput("");
   }
 
+  async function handleNewConversation() {
+    if (!activePetId) return;
+    try {
+      const c = await createConv({ data: { petId: activePetId } });
+      await qc.invalidateQueries({ queryKey: ["conversations", activePetId] });
+      setHistoryOpen(false);
+      navigate({ to: "/chat/$threadId", params: { threadId: c.id } });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create conversation");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this conversation?")) return;
+    try {
+      await deleteConv({ data: { id } });
+      await qc.invalidateQueries({ queryKey: ["conversations", activePetId] });
+      if (id === threadId) {
+        setHistoryOpen(false);
+        navigate({ to: "/chat", replace: true });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete");
+    }
+  }
+
   return (
     <AppShell>
       <AppHeader title="AI companion" />
 
-      <div className="flex items-start gap-2 border-b border-border bg-[color:var(--ai-soft)]/50 px-4 py-2 text-xs text-foreground">
-        <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--ai)]" />
-        <p>
+      <div className="flex items-center gap-2 border-b border-border bg-[color:var(--ai-soft)]/50 px-3 py-2 text-xs text-foreground">
+        <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Conversation history">
+              <History className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="flex w-[88%] max-w-sm flex-col p-0">
+            <SheetHeader className="border-b border-border p-4">
+              <SheetTitle>Conversations</SheetTitle>
+            </SheetHeader>
+            <div className="border-b border-border p-3">
+              <Button onClick={handleNewConversation} className="w-full justify-start gap-2" variant="secondary">
+                <Plus className="h-4 w-4" /> New conversation
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2">
+              {(convosQ.data ?? []).length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">No conversations yet.</p>
+              ) : (
+                <ul className="space-y-1">
+                  {(convosQ.data ?? []).map((c) => {
+                    const isActive = c.id === threadId;
+                    return (
+                      <li
+                        key={c.id}
+                        className={`group flex items-center gap-2 rounded-lg px-2 py-2 transition-colors ${
+                          isActive ? "bg-accent" : "hover:bg-accent/60"
+                        }`}
+                      >
+                        <button
+                          className="flex-1 min-w-0 text-left"
+                          onClick={() => {
+                            setHistoryOpen(false);
+                            navigate({ to: "/chat/$threadId", params: { threadId: c.id } });
+                          }}
+                        >
+                          <div className="truncate text-sm font-medium text-foreground">
+                            {c.title?.trim() || "New conversation"}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
+                          </div>
+                        </button>
+                        <button
+                          aria-label="Delete conversation"
+                          className="rounded p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(c.id);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+        <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-[color:var(--ai)]" />
+        <p className="flex-1">
           I can help you think through your pet's health, but I'm not a vet. For emergencies, call your vet right away.
         </p>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 shrink-0"
+          aria-label="New conversation"
+          onClick={handleNewConversation}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
 
       <Conversation className="flex-1">
