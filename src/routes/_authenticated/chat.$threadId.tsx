@@ -173,9 +173,13 @@ function ChatThreadPage() {
       })
         .then((entry) => {
           setEntryByMessageId((prev) => ({ ...prev, [messageId]: entry }));
-          qc.invalidateQueries({ queryKey: ["entries"] });
+          qc.invalidateQueries({ queryKey: ["entries"], refetchType: "all" });
+          toast.success(`Added to record: ${entry.title}`);
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error("[auto_log] createAiEntry failed", err);
+          toast.error(err?.message || "Failed to log entry");
+        });
     } catch {
       // ignore parse errors
     }
