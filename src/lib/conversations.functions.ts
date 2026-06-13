@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 export type Conversation = {
@@ -22,11 +21,10 @@ export type ChatMessage = {
 };
 
 export const listConversations = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ petId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: rows, error } = await supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
       .from("conversations")
       .select("*")
       .eq("pet_id", data.petId)
@@ -36,18 +34,17 @@ export const listConversations = createServerFn({ method: "POST" })
   });
 
 export const getOrCreateLatestConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ petId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: rows } = await supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
       .from("conversations")
       .select("*")
       .eq("pet_id", data.petId)
       .order("updated_at", { ascending: false })
       .limit(1);
     if (rows && rows.length > 0) return rows[0] as Conversation;
-    const { data: created, error } = await supabase
+    const { data: created, error } = await supabaseAdmin
       .from("conversations")
       .insert({ pet_id: data.petId, title: "New conversation" })
       .select("*")
@@ -57,11 +54,10 @@ export const getOrCreateLatestConversation = createServerFn({ method: "POST" })
   });
 
 export const createConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ petId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: created, error } = await supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: created, error } = await supabaseAdmin
       .from("conversations")
       .insert({ pet_id: data.petId, title: "New conversation" })
       .select("*")
@@ -71,11 +67,10 @@ export const createConversation = createServerFn({ method: "POST" })
   });
 
 export const getMessages = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ conversationId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: rows, error } = await supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
       .from("messages")
       .select("*")
       .eq("conversation_id", data.conversationId)
@@ -85,24 +80,21 @@ export const getMessages = createServerFn({ method: "POST" })
   });
 
 export const deleteConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { error } = await supabase.from("conversations").delete().eq("id", data.id);
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("conversations").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const undoAiEntry = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ entryId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    // Only allow undo if entry was created by AI
-    const { data: e } = await supabase.from("entries").select("created_by").eq("id", data.entryId).single();
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: e } = await supabaseAdmin.from("entries").select("created_by").eq("id", data.entryId).single();
     if (!e || e.created_by !== "ai") throw new Error("Cannot undo this entry");
-    const { error } = await supabase.from("entries").delete().eq("id", data.entryId);
+    const { error } = await supabaseAdmin.from("entries").delete().eq("id", data.entryId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

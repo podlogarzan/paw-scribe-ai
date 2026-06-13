@@ -41,14 +41,7 @@ export const Route = createFileRoute("/api/chat")({
           onFinish: async ({ messages }) => {
             if (!body.conversationId) return;
             try {
-              const authHeader = request.headers.get("authorization");
-              if (!authHeader) return;
-              const { createClient } = await import("@supabase/supabase-js");
-              const supabase = createClient(
-                process.env.SUPABASE_URL!,
-                process.env.SUPABASE_PUBLISHABLE_KEY!,
-                { global: { headers: { Authorization: authHeader } } },
-              );
+              const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
 
               const last = messages[messages.length - 1];
               const userMsg = incoming[incoming.length - 1];
@@ -100,9 +93,24 @@ export const Route = createFileRoute("/api/chat")({
                   content: assistantText,
                   created_entry_id: createdEntryId,
                 });
+
+                // Auto-title from first user message (50 chars), if still default
+                const { data: convo } = await supabase
+                  .from("conversations")
+                  .select("title")
+                  .eq("id", body.conversationId)
+                  .single();
+                const currentTitle = (convo?.title ?? "").trim();
+                const isDefault = !currentTitle || currentTitle === "New conversation";
+                const newTitle = isDefault && userText
+                  ? userText.replace(/\s+/g, " ").trim().slice(0, 50)
+                  : null;
                 await supabase
                   .from("conversations")
-                  .update({ updated_at: new Date().toISOString() })
+                  .update({
+                    updated_at: new Date().toISOString(),
+                    ...(newTitle ? { title: newTitle } : {}),
+                  })
                   .eq("id", body.conversationId);
               }
             } catch (err) {
