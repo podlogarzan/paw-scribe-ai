@@ -91,17 +91,25 @@ export const getMessages = createServerFn({ method: "POST" })
         if (s.path && s.signedUrl) signMap.set(s.path, s.signedUrl);
       }
     }
+    const entryIds = Array.from(
+      new Set(messages.map((m) => m.created_entry_id).filter((v): v is string => !!v)),
+    );
+    const entryMap = new Map<string, { id: string; title: string }>();
+    if (entryIds.length > 0) {
+      const { data: ents } = await supabaseAdmin
+        .from("entries")
+        .select("id,title")
+        .in("id", entryIds);
+      for (const e of ents ?? []) entryMap.set(e.id, { id: e.id, title: e.title });
+    }
     return messages.map((m) => ({
       ...m,
-      image_urls:
-        (m.image_paths ?? []).map((p) => signMap.get(p)).filter((u): u is string => !!u),
-      entry: null as { id: string; title: string } | null,
+      image_urls: (m.image_paths ?? [])
+        .map((p) => signMap.get(p))
+        .filter((u): u is string => !!u),
+      entry: m.created_entry_id ? entryMap.get(m.created_entry_id) ?? null : null,
     }));
-  })
-  // re-export below adds entry titles
-  ;
-
-export const getMessagesWithEntries = getMessages; // backward alias if needed
+  });
 
 export const deleteConversation = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
