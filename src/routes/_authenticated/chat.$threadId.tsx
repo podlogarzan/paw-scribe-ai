@@ -398,7 +398,8 @@ function ChatThreadPage() {
           ) : null}
 
           {messages.map((m) => {
-            const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const text = rawText.replace(/<auto_log>[\s\S]*?<\/auto_log>/g, "").trim();
             const images = m.parts.filter((p: any) => p.type === "file" && (p.mediaType?.startsWith?.("image/") || true) && p.url) as any[];
             if (m.role === "user") {
               return (
@@ -421,6 +422,7 @@ function ChatThreadPage() {
               </Message>
               );
             }
+            const entry = entryByMessageId[m.id];
             return (
               <Message key={m.id} from="assistant">
                 <MessageContent className="!bg-transparent !p-0">
@@ -432,6 +434,18 @@ function ChatThreadPage() {
                     </div>
                   )}
                   <MessageResponse>{text}</MessageResponse>
+                  {entry && (
+                    <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-[color:var(--ai)] px-3 py-1 text-xs font-medium text-white">
+                      <span>📅 Added to record: '{entry.title}'</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUndoEntry(m.id, entry.id)}
+                        className="underline underline-offset-2 hover:no-underline"
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  )}
                 </MessageContent>
               </Message>
             );
