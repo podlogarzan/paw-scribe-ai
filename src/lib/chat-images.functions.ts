@@ -100,5 +100,5 @@ export const listChatPhotos = createServerFn({ method: "POST" })
       ...f,
       signedUrl: signMap.get(f.path) ?? "",
       conversationTitle: titleMap.get(f.conversationId) ?? null,
-    }));
+    })) as ChatPhoto[];
   });
