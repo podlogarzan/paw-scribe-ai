@@ -76,7 +76,26 @@ export const getMessages = createServerFn({ method: "POST" })
       .eq("conversation_id", data.conversationId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
-    return (rows ?? []) as ChatMessage[];
+    const messages = (rows ?? []) as ChatMessage[];
+    const allPaths = Array.from(
+      new Set(
+        messages.flatMap((m) => (m.image_paths ?? []) as string[]),
+      ),
+    );
+    const signMap = new Map<string, string>();
+    if (allPaths.length > 0) {
+      const { data: signed } = await supabaseAdmin.storage
+        .from("chat-photos")
+        .createSignedUrls(allPaths, 60 * 60 * 24 * 7);
+      for (const s of signed ?? []) {
+        if (s.path && s.signedUrl) signMap.set(s.path, s.signedUrl);
+      }
+    }
+    return messages.map((m) => ({
+      ...m,
+      image_urls:
+        (m.image_paths ?? []).map((p) => signMap.get(p)).filter((u): u is string => !!u),
+    }));
   });
 
 export const deleteConversation = createServerFn({ method: "POST" })

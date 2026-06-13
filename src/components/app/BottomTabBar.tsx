@@ -1,10 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { CalendarDays, MessageCircleHeart } from "lucide-react";
+import { CalendarDays, Images, MessageCircleHeart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/home", icon: CalendarDays, label: "Calendar" },
   { to: "/chat", icon: MessageCircleHeart, label: "Chat" },
+  { to: "/gallery", icon: Images, label: "Gallery" },
 ] as const;
 
 export function BottomTabBar() {

@@ -45,18 +45,32 @@ export const Route = createFileRoute("/api/chat")({
 
               const last = messages[messages.length - 1];
               const userMsg = incoming[incoming.length - 1];
-              const userText = userMsg?.parts
+              const rawUserText = userMsg?.parts
                 ?.map((p: any) => (p.type === "text" ? p.text : ""))
                 .join("") ?? "";
+              const userText = rawUserText === "(image)" ? "" : rawUserText;
               const assistantText = last?.parts
                 ?.map((p: any) => (p.type === "text" ? p.text : ""))
                 .join("") ?? "";
+
+              // Extract image storage paths from user message file parts
+              const userImagePaths: string[] = (userMsg?.parts ?? [])
+                .filter((p: any) => p.type === "file" && p.mediaType?.startsWith?.("image/") && p.filename)
+                .map((p: any) => p.filename as string);
 
               if (userText) {
                 await supabase.from("messages").insert({
                   conversation_id: body.conversationId,
                   role: "user",
                   content: userText,
+                  image_paths: userImagePaths.length ? userImagePaths : null,
+                });
+              } else if (userImagePaths.length) {
+                await supabase.from("messages").insert({
+                  conversation_id: body.conversationId,
+                  role: "user",
+                  content: "",
+                  image_paths: userImagePaths,
                 });
               }
 
