@@ -130,3 +130,48 @@ export const undoAiEntry = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const createAiEntryFromAutolog = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        conversationId: z.string().uuid(),
+        petId: z.string().uuid(),
+        type: z.enum(["appointment", "vaccination", "health_issue", "note"]),
+        title: z.string().min(1).max(200),
+        description: z.string().max(4000).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: entry, error } = await supabaseAdmin
+      .from("entries")
+      .insert({
+        pet_id: data.petId,
+        type: data.type,
+        title: data.title,
+        description: data.description ?? null,
+        occurred_at: new Date().toISOString(),
+        created_by: "ai",
+        source_conversation_id: data.conversationId,
+      })
+      .select("id,title")
+      .single();
+    if (error) throw new Error(error.message);
+    const { data: lastMsg } = await supabaseAdmin
+      .from("messages")
+      .select("id")
+      .eq("conversation_id", data.conversationId)
+      .eq("role", "assistant")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lastMsg) {
+      await supabaseAdmin
+        .from("messages")
+        .update({ created_entry_id: entry.id })
+        .eq("id", lastMsg.id);
+    }
+    return entry as { id: string; title: string };
+  });
