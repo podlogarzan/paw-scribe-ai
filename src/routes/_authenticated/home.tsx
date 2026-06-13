@@ -26,6 +26,7 @@ import { listPets } from "@/lib/pets.functions";
 import { listEntriesForPet, upcomingEntries, type Entry, type EntryType } from "@/lib/entries.functions";
 import { useActivePet } from "@/stores/active-pet";
 import { cn } from "@/lib/utils";
+import { useIsDesktop } from "@/hooks/use-breakpoint";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const fetchPets = useServerFn(listPets);
   const fetchEntries = useServerFn(listEntriesForPet);
   const fetchUpcoming = useServerFn(upcomingEntries);
@@ -99,13 +101,93 @@ function HomePage() {
     );
   }
 
+  const dayEntriesForSelected = selectedDay
+    ? entriesByDay.get(format(selectedDay, "yyyy-MM-dd")) ?? []
+    : [];
+
+  const rightPanel = (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border px-5 py-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          {selectedDay ? "Day details" : "Upcoming"}
+        </h2>
+        {selectedDay ? (
+          <p className="mt-1 text-base font-bold">{format(selectedDay, "EEEE, MMM d")}</p>
+        ) : null}
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {selectedDay ? (
+          dayEntriesForSelected.length > 0 ? (
+            <ul className="grid gap-2">
+              {dayEntriesForSelected.map((e) => (
+                <li key={e.id}>
+                  <button
+                    onClick={() => navigate({ to: "/entry/$entryId", params: { entryId: e.id } })}
+                    className="soft-card flex w-full items-start gap-3 p-3 text-left"
+                  >
+                    <div className="grid gap-1">
+                      <div className="flex items-center gap-2">
+                        <EntryBadge type={e.type as EntryType} />
+                        {e.created_by === "ai" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ai-soft)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--ai)]">
+                            <Sparkles className="h-3 w-3" /> AI
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-sm font-semibold">{e.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(e.occurred_at), "h:mm a")}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState title="Nothing logged on this day" body="Tap + to add an entry." />
+          )
+        ) : (upcomingQ.data ?? []).length > 0 ? (
+          <ul className="grid gap-2">
+            {upcomingQ.data!.map((e) => (
+              <li key={e.id}>
+                <button
+                  onClick={() => navigate({ to: "/entry/$entryId", params: { entryId: e.id } })}
+                  className="soft-card flex w-full flex-col items-start gap-1 p-3 text-left"
+                >
+                  <EntryBadge type={e.type as EntryType} />
+                  <span className="text-sm font-semibold leading-tight">{e.title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(e.occurred_at), "EEE, MMM d · h:mm a")}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">No upcoming items.</p>
+        )}
+      </div>
+      <div className="border-t border-border p-4">
+        <Button
+          className="w-full"
+          onClick={() => {
+            setNewAtDate(selectedDay ?? new Date());
+            setNewOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4" /> Add entry
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <AppShell>
+    <AppShell rightPanel={rightPanel}>
       <AppHeader />
 
-      <main className="flex-1 px-4 pb-24">
+      <main className="flex-1 px-4 pb-24 md:px-6 md:pb-6 lg:px-8">
         {/* Upcoming strip */}
-        <section className="pt-3">
+        <section className="pt-3 lg:hidden">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Upcoming</h2>
           </div>
@@ -133,7 +215,7 @@ function HomePage() {
         </section>
 
         {/* Month header */}
-        <section className="mt-6">
+        <section className="mt-6 lg:mt-3">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-bold">{format(monthAnchor, "MMMM yyyy")}</h2>
             <div className="flex gap-1">
@@ -158,15 +240,17 @@ function HomePage() {
               const dayEntries = entriesByDay.get(key) ?? [];
               const inMonth = isSameMonth(day, monthAnchor);
               const isToday = isSameDay(day, new Date());
+              const isSelected = selectedDay && isSameDay(day, selectedDay);
               const dots = dayEntries.slice(0, 4);
               return (
                 <button
                   key={key}
                   onClick={() => setSelectedDay(day)}
                   className={cn(
-                    "relative flex aspect-square flex-col items-center justify-start rounded-xl p-1 text-xs transition-colors",
+                    "relative flex aspect-square flex-col items-center justify-start rounded-xl p-1 text-xs transition-colors md:text-sm",
                     inMonth ? "text-foreground hover:bg-accent" : "text-muted-foreground/40",
                     isToday && "bg-primary/10 font-semibold text-primary",
+                    isSelected && "ring-2 ring-primary",
                   )}
                 >
                   <span className="leading-none mt-1">{format(day, "d")}</span>
@@ -197,7 +281,7 @@ function HomePage() {
           setNewOpen(true);
         }}
         aria-label="Add entry"
-        className="fixed bottom-20 right-[calc(50%-13.75rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform active:scale-95"
+        className="fixed bottom-20 right-[calc(50%-13.75rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform active:scale-95 md:hidden"
         style={{ right: "max(calc(50% - 13.75rem), 1.25rem)" }}
       >
         <Plus className="h-6 w-6" />
@@ -205,7 +289,7 @@ function HomePage() {
 
       <BottomTabBar />
 
-      <Drawer open={!!selectedDay} onOpenChange={(o) => !o && setSelectedDay(null)}>
+      <Drawer open={!!selectedDay && !isDesktop} onOpenChange={(o) => !o && setSelectedDay(null)}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{selectedDay ? format(selectedDay, "EEEE, MMM d") : ""}</DrawerTitle>

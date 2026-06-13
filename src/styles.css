@@ -159,6 +159,16 @@
     border-color: var(--color-border);
   }
 
+  html {
+    font-size: 14px;
+  }
+  @media (min-width: 768px) {
+    html { font-size: 15px; }
+  }
+  @media (min-width: 1024px) {
+    html { font-size: 16px; }
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -172,10 +182,10 @@
   }
 }
 
-/* Mobile-first app shell helpers */
+/* Responsive app shell helpers */
 @layer components {
-  .app-shell {
-    @apply mx-auto flex min-h-screen w-full max-w-md flex-col bg-background;
+  .app-shell-inner {
+    @apply mx-auto flex min-h-screen w-full max-w-md flex-col md:max-w-none;
   }
   .soft-card {
     @apply rounded-2xl bg-card shadow-[var(--shadow-soft)];

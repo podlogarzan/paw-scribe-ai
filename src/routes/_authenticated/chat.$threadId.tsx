@@ -40,6 +40,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useActivePet } from "@/stores/active-pet";
 import { toast } from "sonner";
+import { useIsDesktop } from "@/hooks/use-breakpoint";
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
   let binary = "";
@@ -59,6 +60,7 @@ function ChatThreadPage() {
   const { threadId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const isDesktop = useIsDesktop();
   const fetchMessages = useServerFn(getMessages);
   const fetchConversations = useServerFn(listConversations);
   const createConv = useServerFn(createConversation);
@@ -202,14 +204,75 @@ function ChatThreadPage() {
     }
   }
 
+  const conversationList = (
+    <ul className="space-y-1">
+      {(convosQ.data ?? []).map((c) => {
+        const isActive = c.id === threadId;
+        return (
+          <li
+            key={c.id}
+            className={`group flex items-center gap-2 rounded-lg px-2 py-2 transition-colors ${
+              isActive ? "bg-accent" : "hover:bg-accent/60"
+            }`}
+          >
+            <button
+              className="flex-1 min-w-0 text-left"
+              onClick={() => {
+                setHistoryOpen(false);
+                navigate({ to: "/chat/$threadId", params: { threadId: c.id } });
+              }}
+            >
+              <div className="truncate text-sm font-medium text-foreground">
+                {c.title?.trim() || "New conversation"}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
+              </div>
+            </button>
+            <button
+              aria-label="Delete conversation"
+              className="rounded p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(c.id);
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  const rightPanel = (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Conversations
+        </h2>
+        <Button onClick={handleNewConversation} className="mt-3 w-full justify-start gap-2" variant="secondary">
+          <Plus className="h-4 w-4" /> New conversation
+        </Button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {(convosQ.data ?? []).length === 0 ? (
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">No conversations yet.</p>
+        ) : (
+          conversationList
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <AppShell>
+    <AppShell rightPanel={rightPanel}>
       <AppHeader title="AI companion" />
 
       <div className="flex items-center gap-2 border-b border-border bg-[color:var(--ai-soft)]/50 px-3 py-2 text-xs text-foreground">
-        <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <Sheet open={historyOpen && !isDesktop} onOpenChange={setHistoryOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Conversation history">
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 lg:hidden" aria-label="Conversation history">
               <History className="h-4 w-4" />
             </Button>
           </SheetTrigger>
@@ -226,44 +289,7 @@ function ChatThreadPage() {
               {(convosQ.data ?? []).length === 0 ? (
                 <p className="px-3 py-6 text-center text-sm text-muted-foreground">No conversations yet.</p>
               ) : (
-                <ul className="space-y-1">
-                  {(convosQ.data ?? []).map((c) => {
-                    const isActive = c.id === threadId;
-                    return (
-                      <li
-                        key={c.id}
-                        className={`group flex items-center gap-2 rounded-lg px-2 py-2 transition-colors ${
-                          isActive ? "bg-accent" : "hover:bg-accent/60"
-                        }`}
-                      >
-                        <button
-                          className="flex-1 min-w-0 text-left"
-                          onClick={() => {
-                            setHistoryOpen(false);
-                            navigate({ to: "/chat/$threadId", params: { threadId: c.id } });
-                          }}
-                        >
-                          <div className="truncate text-sm font-medium text-foreground">
-                            {c.title?.trim() || "New conversation"}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
-                          </div>
-                        </button>
-                        <button
-                          aria-label="Delete conversation"
-                          className="rounded p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(c.id);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                conversationList
               )}
             </div>
           </SheetContent>
