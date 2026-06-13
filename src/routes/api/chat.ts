@@ -45,9 +45,10 @@ export const Route = createFileRoute("/api/chat")({
 
               const last = messages[messages.length - 1];
               const userMsg = incoming[incoming.length - 1];
-              const userText = userMsg?.parts
+              const rawUserText = userMsg?.parts
                 ?.map((p: any) => (p.type === "text" ? p.text : ""))
                 .join("") ?? "";
+              const userText = rawUserText === "(image)" ? "" : rawUserText;
               const assistantText = last?.parts
                 ?.map((p: any) => (p.type === "text" ? p.text : ""))
                 .join("") ?? "";
