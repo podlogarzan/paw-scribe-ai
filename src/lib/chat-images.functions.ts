@@ -94,7 +94,7 @@ export const listChatPhotos = createServerFn({ method: "POST" })
     if (sErr) throw new Error(sErr.message);
     const signMap = new Map<string, string>();
     for (const s of signed ?? []) {
-      if (s.path) signMap.set(s.path, s.signedUrl);
+      if (s.path && s.signedUrl) signMap.set(s.path, s.signedUrl);
     }
     return flat.map((f) => ({
       ...f,
