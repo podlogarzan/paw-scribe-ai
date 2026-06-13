@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, type UIMessage, type FileUIPart } from "ai";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-import { Heart, History, Plus, ShieldAlert, Trash2 } from "lucide-react";
+import { Heart, History, ImagePlus, Plus, ShieldAlert, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
@@ -29,6 +29,7 @@ import {
   getMessages,
   listConversations,
 } from "@/lib/conversations.functions";
+import { uploadChatImage } from "@/lib/chat-images.functions";
 import {
   Sheet,
   SheetContent,
@@ -52,9 +53,13 @@ function ChatThreadPage() {
   const fetchConversations = useServerFn(listConversations);
   const createConv = useServerFn(createConversation);
   const deleteConv = useServerFn(deleteConversation);
+  const uploadImage = useServerFn(uploadChatImage);
   const activePetId = useActivePet((s) => s.activePetId);
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<{ id: string; file: File; previewUrl: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const msgsQ = useQuery({
     queryKey: ["messages", threadId],
@@ -69,11 +74,14 @@ function ChatThreadPage() {
 
   const initialMessages: UIMessage[] = useMemo(
     () =>
-      (msgsQ.data ?? []).map((m) => ({
-        id: m.id,
-        role: m.role,
-        parts: [{ type: "text", text: m.content }],
-      })) as UIMessage[],
+      (msgsQ.data ?? []).map((m) => {
+        const parts: any[] = [];
+        if (m.content) parts.push({ type: "text", text: m.content });
+        for (const url of (m as any).image_urls ?? []) {
+          parts.push({ type: "file", url, mediaType: "image/*" });
+        }
+        return { id: m.id, role: m.role, parts };
+      }) as UIMessage[],
     [msgsQ.data],
   );
 
@@ -104,11 +112,58 @@ function ChatThreadPage() {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  function handleSubmit(message: PromptInputMessage) {
+  async function handleSubmit(message: PromptInputMessage) {
     const text = (message.text ?? input).trim();
-    if (!text || isLoading) return;
-    sendMessage({ text });
-    setInput("");
+    if ((!text && pendingFiles.length === 0) || isLoading || uploading) return;
+    setUploading(true);
+    try {
+      const files: FileUIPart[] = [];
+      for (const pf of pendingFiles) {
+        const buf = await pf.file.arrayBuffer();
+        const b64 = arrayBufferToBase64(buf);
+        const res = await uploadImage({
+          data: {
+            conversationId: threadId,
+            mediaType: pf.file.type || "image/jpeg",
+            dataBase64: b64,
+          },
+        });
+        files.push({
+          type: "file",
+          url: res.signedUrl,
+          mediaType: res.mediaType,
+          filename: res.path,
+        });
+      }
+      sendMessage({ text: text || "(image)", files });
+      setInput("");
+      pendingFiles.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      setPendingFiles([]);
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function onPickFiles(list: FileList | null) {
+    if (!list) return;
+    const next = Array.from(list)
+      .filter((f) => f.type.startsWith("image/"))
+      .map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+    setPendingFiles((prev) => [...prev, ...next]);
+  }
+
+  function removePending(id: string) {
+    setPendingFiles((prev) => {
+      const removed = prev.find((p) => p.id === id);
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      return prev.filter((p) => p.id !== id);
+    });
   }
 
   async function handleNewConversation() {
@@ -234,16 +289,38 @@ function ChatThreadPage() {
 
           {messages.map((m) => {
             const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const images = m.parts.filter((p: any) => p.type === "file" && (p.mediaType?.startsWith?.("image/") || true) && p.url) as any[];
             if (m.role === "user") {
               return (
               <Message key={m.id} from="user">
-                <MessageContent>{text}</MessageContent>
+                <MessageContent>
+                  {images.length > 0 && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {images.map((p, i) => (
+                        <img
+                          key={i}
+                          src={p.url}
+                          alt=""
+                          className="h-32 w-full rounded-md object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {text && text !== "(image)" ? <span>{text}</span> : null}
+                </MessageContent>
               </Message>
               );
             }
             return (
               <Message key={m.id} from="assistant">
                 <MessageContent className="!bg-transparent !p-0">
+                  {images.length > 0 && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {images.map((p, i) => (
+                        <img key={i} src={p.url} alt="" className="h-32 w-full rounded-md object-cover" />
+                      ))}
+                    </div>
+                  )}
                   <MessageResponse>{text}</MessageResponse>
                 </MessageContent>
               </Message>
@@ -262,14 +339,53 @@ function ChatThreadPage() {
       </Conversation>
 
       <div className="border-t border-border bg-background px-3 py-2">
+        {pendingFiles.length > 0 && (
+          <div className="mb-2 flex gap-2 overflow-x-auto">
+            {pendingFiles.map((p) => (
+              <div key={p.id} className="relative h-16 w-16 shrink-0">
+                <img src={p.previewUrl} alt="" className="h-full w-full rounded-md object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removePending(p.id)}
+                  className="absolute -right-1 -top-1 rounded-full bg-background p-0.5 shadow"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Tell me what's going on…"
           />
-          <PromptInputFooter className="justify-end">
-            <PromptInputSubmit status={status} disabled={!input.trim()} />
+          <PromptInputFooter className="justify-between">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              aria-label="Attach photo"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <ImagePlus className="h-4 w-4" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                onPickFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <PromptInputSubmit status={status} disabled={(!input.trim() && pendingFiles.length === 0) || uploading} />
           </PromptInputFooter>
         </PromptInput>
       </div>
