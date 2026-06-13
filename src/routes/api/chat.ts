@@ -74,38 +74,18 @@ export const Route = createFileRoute("/api/chat")({
                 });
               }
 
-              let createdEntryId: string | null = null;
-              const match = assistantText.match(/<auto_log>([\s\S]+?)<\/auto_log>/);
-              if (match && body.petId) {
-                try {
-                  const json = JSON.parse(match[1]);
-                  if (json.title && json.type) {
-                    const { data: row } = await supabase
-                      .from("entries")
-                      .insert({
-                        pet_id: body.petId,
-                        type: json.type,
-                        title: String(json.title).slice(0, 200),
-                        description: json.description ? String(json.description).slice(0, 4000) : null,
-                        occurred_at: json.occurred_at ?? new Date().toISOString(),
-                        created_by: "ai",
-                        source_conversation_id: body.conversationId,
-                      })
-                      .select("id")
-                      .single();
-                    createdEntryId = row?.id ?? null;
-                  }
-                } catch {
-                  // ignore parse errors
-                }
-              }
+              // Strip the auto_log block from persisted content; the client
+              // parses it separately to create the entry (with today's date)
+              // and renders a chip. The block must never be shown to users.
+              const cleanedAssistantText = assistantText
+                .replace(/<auto_log>[\s\S]*?<\/auto_log>/g, "")
+                .trim();
 
-              if (assistantText) {
+              if (cleanedAssistantText) {
                 await supabase.from("messages").insert({
                   conversation_id: body.conversationId,
                   role: "assistant",
-                  content: assistantText,
-                  created_entry_id: createdEntryId,
+                  content: cleanedAssistantText,
                 });
 
                 // Auto-title from first user message (50 chars), if still default

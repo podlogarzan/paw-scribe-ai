@@ -28,6 +28,8 @@ import {
   deleteConversation,
   getMessages,
   listConversations,
+  createAiEntryFromAutolog,
+  undoAiEntry,
 } from "@/lib/conversations.functions";
 import { uploadChatImage } from "@/lib/chat-images.functions";
 import {
@@ -66,12 +68,18 @@ function ChatThreadPage() {
   const createConv = useServerFn(createConversation);
   const deleteConv = useServerFn(deleteConversation);
   const uploadImage = useServerFn(uploadChatImage);
+  const createAiEntry = useServerFn(createAiEntryFromAutolog);
+  const undoEntry = useServerFn(undoAiEntry);
   const activePetId = useActivePet((s) => s.activePetId);
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<{ id: string; file: File; previewUrl: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [entryByMessageId, setEntryByMessageId] = useState<
+    Record<string, { id: string; title: string }>
+  >({});
+  const prevStatusRef = useRef<string>("ready");
 
   const msgsQ = useQuery({
     queryKey: ["messages", threadId],
@@ -96,6 +104,18 @@ function ChatThreadPage() {
       }) as UIMessage[],
     [msgsQ.data],
   );
+
+  // Seed entry chips from persisted messages
+  useEffect(() => {
+    if (!msgsQ.data) return;
+    setEntryByMessageId((prev) => {
+      const next = { ...prev };
+      for (const m of msgsQ.data as any[]) {
+        if (m.entry) next[m.id] = m.entry;
+      }
+      return next;
+    });
+  }, [msgsQ.data]);
 
   const transport = useMemo(
     () =>
@@ -123,6 +143,60 @@ function ChatThreadPage() {
   }, [activePetId, navigate]);
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  // When a stream finishes, parse <auto_log> from the last assistant message,
+  // create an entry (with today's date), and remember it for the chip.
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (prev !== "streaming" || status === "streaming") return;
+    if (!activePetId) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    const text = last.parts.map((p: any) => (p.type === "text" ? p.text : "")).join("");
+    const match = text.match(/<auto_log>([\s\S]+?)<\/auto_log>/);
+    if (!match) return;
+    try {
+      const json = JSON.parse(match[1]);
+      if (!json?.type || !json?.title) return;
+      const allowed = ["appointment", "vaccination", "health_issue", "note"] as const;
+      if (!allowed.includes(json.type)) return;
+      const messageId = last.id;
+      createAiEntry({
+        data: {
+          conversationId: threadId,
+          petId: activePetId,
+          type: json.type,
+          title: String(json.title).slice(0, 200),
+          description: json.description ? String(json.description).slice(0, 4000) : null,
+        },
+      })
+        .then((entry) => {
+          setEntryByMessageId((prev) => ({ ...prev, [messageId]: entry }));
+          qc.invalidateQueries({ queryKey: ["entries"] });
+        })
+        .catch(() => {});
+    } catch {
+      // ignore parse errors
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  async function handleUndoEntry(messageId: string, entryId: string) {
+    try {
+      await undoEntry({ data: { entryId } });
+      setEntryByMessageId((prev) => {
+        const next = { ...prev };
+        delete next[messageId];
+        return next;
+      });
+      qc.invalidateQueries({ queryKey: ["entries"] });
+      qc.invalidateQueries({ queryKey: ["messages", threadId] });
+      toast.success("Entry removed");
+    } catch (e: any) {
+      toast.error(e.message || "Undo failed");
+    }
+  }
 
   async function handleSubmit(message: PromptInputMessage) {
     const text = (message.text ?? input).trim();
@@ -324,7 +398,8 @@ function ChatThreadPage() {
           ) : null}
 
           {messages.map((m) => {
-            const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const text = rawText.replace(/<auto_log>[\s\S]*?<\/auto_log>/g, "").trim();
             const images = m.parts.filter((p: any) => p.type === "file" && (p.mediaType?.startsWith?.("image/") || true) && p.url) as any[];
             if (m.role === "user") {
               return (
@@ -347,6 +422,7 @@ function ChatThreadPage() {
               </Message>
               );
             }
+            const entry = entryByMessageId[m.id];
             return (
               <Message key={m.id} from="assistant">
                 <MessageContent className="!bg-transparent !p-0">
@@ -358,6 +434,18 @@ function ChatThreadPage() {
                     </div>
                   )}
                   <MessageResponse>{text}</MessageResponse>
+                  {entry && (
+                    <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-[color:var(--ai)] px-3 py-1 text-xs font-medium text-white">
+                      <span>📅 Added to record: '{entry.title}'</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUndoEntry(m.id, entry.id)}
+                        className="underline underline-offset-2 hover:no-underline"
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  )}
                 </MessageContent>
               </Message>
             );
