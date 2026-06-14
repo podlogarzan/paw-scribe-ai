@@ -208,7 +208,7 @@ function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 px-4 py-3 text-xs text-muted-foreground">
+            <div className="soft-card px-4 py-3 text-xs text-muted-foreground">
               No upcoming appointments. Add one with the + button.
             </div>
           )}

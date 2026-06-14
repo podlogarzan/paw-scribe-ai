@@ -191,6 +191,7 @@
     @apply mx-auto flex min-h-screen w-full max-w-md flex-col md:max-w-none;
   }
   .soft-card {
-    @apply rounded-2xl bg-card shadow-[var(--shadow-soft)];
+    @apply bg-card shadow-[var(--shadow-soft)];
+    border-radius: 20px;
   }
 }

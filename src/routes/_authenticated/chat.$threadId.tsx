@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage, type FileUIPart } from "ai";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-import { History, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { History, ImagePlus, PawPrint, Plus, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
@@ -44,6 +44,18 @@ import { useActivePet } from "@/stores/active-pet";
 import { toast } from "sonner";
 import { useIsDesktop } from "@/hooks/use-breakpoint";
 import { LogoMark } from "@/components/app/Logo";
+
+function PawAvatar({ size = 28 }: { size?: number }) {
+  return (
+    <div
+      className="flex shrink-0 items-center justify-center rounded-full bg-[#7BAF89] text-white"
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
+      <PawPrint className="h-3.5 w-3.5" />
+    </div>
+  );
+}
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
   let binary = "";
@@ -390,10 +402,10 @@ function ChatThreadPage() {
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.length === 0 && !isLoading ? (
-            <div className="flex flex-col items-center px-6 py-12 text-center">
-              <LogoMark size={56} />
-              <h3 className="mt-3 text-base font-semibold">Ask me anything about your pet</h3>
-              <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+            <div className="flex flex-col items-center px-6 py-10 text-center">
+              <PawAvatar size={36} />
+              <h3 className="mt-3 text-sm font-semibold">Ask me anything about your pet</h3>
+              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
                 Try: "Luna threw up twice this morning" or "What's a normal weight for a 6-month-old border collie?"
               </p>
             </div>
@@ -427,7 +439,7 @@ function ChatThreadPage() {
             const entry = entryByMessageId[m.id];
             return (
               <Message key={m.id} from="assistant" className="!flex-row !items-start gap-2">
-                <LogoMark size={28} className="mt-1 shrink-0" />
+                <PawAvatar size={28} />
                 <MessageContent className="!bg-transparent !p-0 flex-1">
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-1.5">
@@ -459,7 +471,7 @@ function ChatThreadPage() {
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
             <Message from="assistant" className="!flex-row !items-start gap-2">
-              <LogoMark size={28} className="mt-1 shrink-0" />
+              <PawAvatar size={28} />
               <MessageContent className="!bg-transparent !p-0 flex-1">
                 <Shimmer>Thinking…</Shimmer>
               </MessageContent>
@@ -469,7 +481,9 @@ function ChatThreadPage() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="border-t border-border bg-background px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-2">
+      <div
+        className="px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-3"
+      >
         {pendingFiles.length > 0 && (
           <div className="mb-2 flex gap-2 overflow-x-auto">
             {pendingFiles.map((p) => (
@@ -487,6 +501,10 @@ function ChatThreadPage() {
             ))}
           </div>
         )}
+        <div
+          className="rounded-[20px] bg-white [&_[data-slot=input-group]]:!border-0 [&_[data-slot=input-group]]:!shadow-none [&_[data-slot=input-group]]:!bg-transparent [&_[data-slot=input-group]]:!rounded-[20px]"
+          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)" }}
+        >
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
             value={input}
@@ -519,6 +537,7 @@ function ChatThreadPage() {
             <PromptInputSubmit status={status} disabled={(!input.trim() && pendingFiles.length === 0) || uploading} />
           </PromptInputFooter>
         </PromptInput>
+        </div>
       </div>
 
       <BottomTabBar />
