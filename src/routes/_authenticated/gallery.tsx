@@ -46,7 +46,7 @@ function GalleryPage() {
   return (
     <AppShell>
       <AppHeader title="Gallery" />
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+      <div className="flex-1 overflow-y-auto bg-background px-3 pb-32 pt-4 md:px-6">
         {q.isLoading ? (
           <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
         ) : (q.data ?? []).length === 0 ? (
@@ -63,16 +63,16 @@ function GalleryPage() {
           <div className="space-y-6">
             {grouped.map(([month, items]) => (
               <section key={month}>
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h2 className="mb-3 text-base font-bold text-foreground">
                   {month}
                 </h2>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                   {items.map((p) => (
                     <button
                       key={p.path}
                       type="button"
                       onClick={() => setActive(p)}
-                      className="group relative aspect-square overflow-hidden rounded-md bg-muted"
+                      className="group relative aspect-square overflow-hidden rounded-2xl bg-muted transition-transform hover:scale-[1.01]"
                     >
                       <img
                         src={p.signedUrl}
