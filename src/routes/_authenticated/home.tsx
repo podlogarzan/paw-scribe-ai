@@ -13,13 +13,16 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, Search, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
 import { BottomTabBar } from "@/components/app/BottomTabBar";
 import { EmptyState } from "@/components/app/EmptyState";
 import { EntryDot, EntryBadge } from "@/components/app/EntryDot";
 import { NewEntryDialog } from "@/components/app/NewEntryDialog";
+import { PetChipStrip } from "@/components/app/PetChipStrip";
+import { PetHeroCard } from "@/components/app/PetHeroCard";
+import { AddPetDialog } from "@/components/app/AddPetDialog";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { listPets } from "@/lib/pets.functions";
@@ -87,6 +90,8 @@ function HomePage() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [newAtDate, setNewAtDate] = useState<Date | undefined>(undefined);
+  const [addPetOpen, setAddPetOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
   const days: Date[] = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -186,27 +191,83 @@ function HomePage() {
       <AppHeader />
 
       <main className="flex-1 px-4 pb-24 md:px-6 md:pb-6 lg:px-8">
+        {/* Search row (decorative for now) */}
+        <div className="mt-2 flex items-center gap-2 lg:hidden">
+          <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Search</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCalendarOpen(true)}
+            aria-label="Open calendar"
+            className="grid h-11 w-11 place-items-center rounded-full bg-white shadow-[var(--shadow-soft)]"
+          >
+            <CalendarDays className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Pet chips */}
+        {pets.data && pets.data.length > 0 && (
+          <div className="mt-4 lg:hidden">
+            <PetChipStrip
+              pets={pets.data}
+              activePetId={activePetId}
+              onSelect={setActivePetId}
+              onAdd={() => setAddPetOpen(true)}
+            />
+          </div>
+        )}
+
+        {/* Hero pet card */}
+        <section className="lg:hidden">
+          {(() => {
+            const activePet = pets.data?.find((p) => p.id === activePetId) ?? null;
+            return (
+              <PetHeroCard
+                pet={activePet}
+                onOpen={() =>
+                  activePet &&
+                  navigate({ to: "/pet/$petId", params: { petId: activePet.id } })
+                }
+              />
+            );
+          })()}
+        </section>
+
         {/* Upcoming strip */}
-        <section className="pt-3 lg:hidden">
+        <section className="mt-5 lg:hidden">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Upcoming</h2>
+            <h2 className="text-sm font-bold">Upcoming</h2>
+            <button
+              type="button"
+              onClick={() => setCalendarOpen(true)}
+              className="text-xs font-semibold text-[#7BAF89]"
+            >
+              View calendar
+            </button>
           </div>
           {upcomingQ.data && upcomingQ.data.length > 0 ? (
-            <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              {upcomingQ.data.map((e) => (
-                <button
-                  key={e.id}
-                  onClick={() => navigate({ to: "/entry/$entryId", params: { entryId: e.id } })}
-                  className="soft-card flex min-w-[180px] flex-col items-start gap-1 px-3 py-2 text-left"
-                >
-                  <EntryBadge type={e.type as EntryType} />
-                  <span className="text-sm font-semibold leading-tight">{e.title}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(e.occurred_at), "EEE, MMM d · h:mm a")}
-                  </span>
-                </button>
+            <ul className="grid gap-2">
+              {upcomingQ.data.slice(0, 3).map((e) => (
+                <li key={e.id}>
+                  <button
+                    onClick={() => navigate({ to: "/entry/$entryId", params: { entryId: e.id } })}
+                    className="soft-card flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <EntryBadge type={e.type as EntryType} />
+                      </div>
+                      <p className="mt-1 truncate text-sm font-semibold">{e.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(e.occurred_at), "EEE, MMM d · h:mm a")}
+                      </p>
+                    </div>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
             <div className="soft-card px-4 py-3 text-xs text-muted-foreground">
               No upcoming appointments. Add one with the + button.
@@ -214,8 +275,8 @@ function HomePage() {
           )}
         </section>
 
-        {/* Month header */}
-        <section className="mt-6 lg:mt-3">
+        {/* Desktop / lg+ calendar */}
+        <section className="mt-6 hidden lg:mt-3 lg:block">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-bold">{format(monthAnchor, "MMMM yyyy")}</h2>
             <div className="flex gap-1">
@@ -295,6 +356,70 @@ function HomePage() {
       </button>
 
       <BottomTabBar />
+
+      <AddPetDialog open={addPetOpen} onOpenChange={setAddPetOpen} />
+
+      {/* Calendar drawer for mobile */}
+      <Drawer open={calendarOpen && !isDesktop} onOpenChange={setCalendarOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center justify-between">
+              <span>{format(monthAnchor, "MMMM yyyy")}</span>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" onClick={() => setMonthAnchor(subMonths(monthAnchor, 1))} aria-label="Previous month">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setMonthAnchor(new Date())} aria-label="Today">
+                  <span className="text-xs font-semibold">Today</span>
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setMonthAnchor(addMonths(monthAnchor, 1))} aria-label="Next month">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-6">
+            <div className="grid grid-cols-7 text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {["S","M","T","W","T","F","S"].map((d, i) => <div key={i} className="py-1">{d}</div>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day) => {
+                const key = format(day, "yyyy-MM-dd");
+                const dayEntries = entriesByDay.get(key) ?? [];
+                const inMonth = isSameMonth(day, monthAnchor);
+                const isToday = isSameDay(day, new Date());
+                const isSelected = selectedDay && isSameDay(day, selectedDay);
+                const dots = dayEntries.slice(0, 4);
+                return (
+                  <button
+                    key={key}
+                    onClick={() => { setSelectedDay(day); setCalendarOpen(false); }}
+                    className={cn(
+                      "relative flex aspect-square flex-col items-center justify-start rounded-xl p-1 text-xs transition-colors",
+                      inMonth ? "text-foreground hover:bg-accent" : "text-muted-foreground/40",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-1 flex h-7 w-7 items-center justify-center rounded-full leading-none transition-colors",
+                        isToday && "bg-primary font-semibold text-primary-foreground",
+                        !isToday && isSelected && "bg-primary text-primary-foreground",
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
+                    {dots.length > 0 ? (
+                      <span className="absolute bottom-1 flex gap-0.5">
+                        {dots.map((e) => <EntryDot key={e.id} type={e.type as EntryType} />)}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <Drawer open={!!selectedDay && !isDesktop} onOpenChange={(o) => !o && setSelectedDay(null)}>
         <DrawerContent>
