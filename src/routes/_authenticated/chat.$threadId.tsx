@@ -43,7 +43,6 @@ import { Button } from "@/components/ui/button";
 import { useActivePet } from "@/stores/active-pet";
 import { toast } from "sonner";
 import { useIsDesktop } from "@/hooks/use-breakpoint";
-import { LogoMark } from "@/components/app/Logo";
 
 function PawAvatar({ size = 28 }: { size?: number }) {
   return (
@@ -189,8 +188,7 @@ function ChatThreadPage() {
           qc.invalidateQueries({ queryKey: ["entries"], refetchType: "all" });
           toast.success(`Added to record: ${entry.title}`);
         })
-        .catch((err) => {
-          console.error("[auto_log] createAiEntry failed", err);
+        .catch((err: any) => {
           toast.error(err?.message || "Failed to log entry");
         });
     } catch {

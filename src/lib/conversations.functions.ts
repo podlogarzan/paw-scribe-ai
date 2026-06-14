@@ -146,13 +146,6 @@ export const createAiEntryFromAutolog = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const occurredAt = new Date().toISOString();
-    console.log("[auto_log] inserting entry", {
-      petId: data.petId,
-      conversationId: data.conversationId,
-      type: data.type,
-      title: data.title,
-      occurred_at: occurredAt,
-    });
     const { data: entry, error } = await supabaseAdmin
       .from("entries")
       .insert({
@@ -167,10 +160,8 @@ export const createAiEntryFromAutolog = createServerFn({ method: "POST" })
       .select("id,title")
       .single();
     if (error) {
-      console.error("[auto_log] insert failed", error);
       throw new Error(error.message);
     }
-    console.log("[auto_log] inserted entry", entry);
     const { data: lastMsg } = await supabaseAdmin
       .from("messages")
       .select("id")
