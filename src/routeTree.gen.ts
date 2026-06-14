@@ -19,6 +19,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticated/gallery'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedPetPetIdRouteImport } from './routes/_authenticated/pet.$petId'
 import { Route as AuthenticatedEntryEntryIdRouteImport } from './routes/_authenticated/entry.$entryId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
@@ -71,6 +72,11 @@ const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedChatRoute,
 } as any)
+const AuthenticatedPetPetIdRoute = AuthenticatedPetPetIdRouteImport.update({
+  id: '/pet/$petId',
+  path: '/pet/$petId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEntryEntryIdRoute =
   AuthenticatedEntryEntryIdRouteImport.update({
     id: '/entry/$entryId',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRoutesByTo {
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRoutesById {
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/_authenticated/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRouteTypes {
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/chat/$threadId'
     | '/entry/$entryId'
+    | '/pet/$petId'
     | '/chat/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/chat/$threadId'
     | '/entry/$entryId'
+    | '/pet/$petId'
     | '/chat'
   id:
     | '__root__'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/entry/$entryId'
+    | '/_authenticated/pet/$petId'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
 }
@@ -245,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
+    '/_authenticated/pet/$petId': {
+      id: '/_authenticated/pet/$petId'
+      path: '/pet/$petId'
+      fullPath: '/pet/$petId'
+      preLoaderRoute: typeof AuthenticatedPetPetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entry/$entryId': {
       id: '/_authenticated/entry/$entryId'
       path: '/entry/$entryId'
@@ -282,6 +301,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedEntryEntryIdRoute: typeof AuthenticatedEntryEntryIdRoute
+  AuthenticatedPetPetIdRoute: typeof AuthenticatedPetPetIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -291,6 +311,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedEntryEntryIdRoute: AuthenticatedEntryEntryIdRoute,
+  AuthenticatedPetPetIdRoute: AuthenticatedPetPetIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
