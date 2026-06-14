@@ -1,22 +1,31 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, Images, LogOut, MessageCircleHeart, PawPrint } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Images, LogOut, MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { listPets } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
 import { PetAvatar } from "@/components/app/PetAvatar";
+import { LogoMark } from "@/components/app/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
 const items = [
   { to: "/home", icon: CalendarDays, label: "Calendar" },
-  { to: "/chat", icon: MessageCircleHeart, label: "Chat" },
+  { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/gallery", icon: Images, label: "Gallery" },
 ] as const;
 
-export function SideNav({ className }: { className?: string }) {
+export function SideNav({
+  className,
+  collapsed,
+  onToggle,
+}: {
+  className?: string;
+  collapsed?: boolean;
+  onToggle?: () => void;
+}) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -33,18 +42,31 @@ export function SideNav({ className }: { className?: string }) {
   }
 
   return (
-    <aside className={cn("flex flex-col border-r border-border bg-card", className)}>
-      <Link
-        to="/home"
-        className="flex items-center gap-2 px-5 py-5"
-      >
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[var(--shadow-soft)]">
-          <PawPrint className="h-4 w-4" />
-        </div>
-        <span className="text-base font-bold tracking-tight">PetVet</span>
+    <aside
+      className={cn(
+        "relative flex flex-col border-r border-[color:var(--border)] bg-[#FAFAF8] transition-[width] duration-[250ms] ease-out",
+        className,
+      )}
+    >
+      <Link to="/home" className="flex items-center gap-2 px-4 py-5">
+        <LogoMark size={36} />
+        {!collapsed && (
+          <span className="text-base font-semibold tracking-tight">vetyco</span>
+        )}
       </Link>
 
-      <nav className="flex-1 px-3">
+      {onToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="absolute -right-3 top-7 z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-105 lg:flex"
+        >
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
+      )}
+
+      <nav className={cn("flex-1", collapsed ? "px-2" : "px-3")}>
         <ul className="space-y-1">
           {items.map(({ to, icon: Icon, label }) => {
             const active = pathname === to || pathname.startsWith(`${to}/`);
@@ -53,14 +75,16 @@ export function SideNav({ className }: { className?: string }) {
                 <Link
                   to={to}
                   className={cn(
-                    "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex min-h-11 items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                    collapsed && "justify-center px-0",
                     active
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground/80 hover:bg-accent hover:text-foreground",
+                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                      : "text-foreground/75 hover:bg-accent hover:text-foreground",
                   )}
+                  title={collapsed ? label : undefined}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
-                  <span className="truncate">{label}</span>
+                  {!collapsed && <span className="truncate">{label}</span>}
                 </Link>
               </li>
             );
@@ -69,14 +93,62 @@ export function SideNav({ className }: { className?: string }) {
       </nav>
 
       {activePet ? (
-        <div className="m-3 hidden rounded-xl border border-border bg-background p-2 lg:block">
-          <Link to="/profile" className="flex min-w-0 items-center gap-2">
-            <PetAvatar name={activePet.name} url={activePet.avatar_url} size={36} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{activePet.name}</div>
-              <div className="truncate text-xs text-muted-foreground">
-                {activePet.species}
-                {activePet.breed ? ` · ${activePet.breed}` : ""}
+        <div className={cn("m-3 rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}>
+          <Link to="/profile" className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
+            <PetAvatar
+              name={activePet.name}
+              url={activePet.avatar_url}
+              species={activePet.species}
+              size={36}
+            />
+            {!collapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{activePet.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {activePet.species}
+                    {activePet.breed ? ` · ${activePet.breed}` : ""}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSignOut();
+                  }}
+                  className="rounded-md p-1.5 text-[color:var(--warm)] hover:bg-accent"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          </Link>
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
+export function useSidebarCollapsed() {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    const v = localStorage.getItem("vetyco_sidebar_collapsed");
+    if (v === "1") setCollapsed(true);
+  }, []);
+  function toggle() {
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem("vetyco_sidebar_collapsed", next ? "1" : "0");
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+  }
+  return { collapsed, toggle };
+}
               </div>
             </div>
             <button
