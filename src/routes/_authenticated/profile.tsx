@@ -1,17 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PetAvatar } from "@/components/app/PetAvatar";
+import { AddPetDialog } from "@/components/app/AddPetDialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { createPet, listPets } from "@/lib/pets.functions";
+import { listPets } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -20,27 +16,11 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const fetchPets = useServerFn(listPets);
-  const create = useServerFn(createPet);
   const { activePetId, setActivePetId } = useActivePet();
 
   const petsQ = useQuery({ queryKey: ["pets"], queryFn: () => fetchPets() });
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [species, setSpecies] = useState("dog");
-
-  const mut = useMutation({
-    mutationFn: () => create({ data: { name: name.trim(), species } }),
-    onSuccess: (pet) => {
-      setActivePetId(pet.id);
-      qc.invalidateQueries({ queryKey: ["pets"] });
-      toast.success(`${pet.name} added`);
-      setOpen(false);
-      setName("");
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Could not add"),
-  });
 
   return (
     <AppShell>
@@ -58,7 +38,7 @@ function ProfilePage() {
           {(petsQ.data ?? []).map((p) => (
             <li key={p.id}>
               <button
-                onClick={() => setActivePetId(p.id)}
+                onClick={() => { setActivePetId(p.id); navigate({ to: "/pet/$petId", params: { petId: p.id } }); }}
                 className={`soft-card flex w-full items-center gap-3 p-3 text-left ${
                   p.id === activePetId ? "ring-2 ring-primary" : ""
                 }`}
@@ -77,39 +57,7 @@ function ProfilePage() {
         </ul>
       </main>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Add a pet</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3">
-            <div className="grid gap-1.5">
-              <Label htmlFor="pn">Name</Label>
-              <Input id="pn" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="ps">Species</Label>
-              <Select value={species} onValueChange={setSpecies}>
-                <SelectTrigger id="ps"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dog">Dog</SelectItem>
-                  <SelectItem value="cat">Cat</SelectItem>
-                  <SelectItem value="rabbit">Rabbit</SelectItem>
-                  <SelectItem value="bird">Bird</SelectItem>
-                  <SelectItem value="reptile">Reptile</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => mut.mutate()} disabled={!name.trim() || mut.isPending}>
-              {mut.isPending ? "Saving…" : "Add pet"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddPetDialog open={open} onOpenChange={setOpen} />
     </AppShell>
   );
 }
