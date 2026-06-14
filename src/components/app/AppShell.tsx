@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { SideNav } from "@/components/app/SideNav";
+import { SideNav, useSidebarCollapsed } from "@/components/app/SideNav";
 
 export function AppShell({
   children,
@@ -8,9 +8,28 @@ export function AppShell({
   children: ReactNode;
   rightPanel?: ReactNode;
 }) {
+  const { collapsed, toggle } = useSidebarCollapsed();
+  const sidebarWidth = collapsed ? "64px" : "220px";
   return (
-    <div className="min-h-screen w-full bg-background md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)_320px]">
-      <SideNav className="hidden md:sticky md:top-0 md:flex md:h-screen" />
+    <div
+      className="min-h-screen w-full bg-background md:grid lg:grid-cols-[var(--sb)_minmax(0,1fr)_320px]"
+      style={{
+        // @ts-expect-error css var
+        "--sb": sidebarWidth,
+        gridTemplateColumns: undefined,
+      }}
+    >
+      <div
+        className="hidden md:block"
+        style={{ width: sidebarWidth }}
+      >
+        <SideNav
+          className="sticky top-0 hidden h-screen md:flex"
+          style={{ width: sidebarWidth }}
+          collapsed={collapsed}
+          onToggle={toggle}
+        />
+      </div>
       <div className="app-shell-inner">{children}</div>
       <aside className="hidden overflow-y-auto border-l border-border bg-card lg:sticky lg:top-0 lg:block lg:h-screen">
         {rightPanel}
