@@ -501,11 +501,11 @@ function ChatThreadPage() {
             ))}
           </div>
         )}
-        <PromptInput
-          onSubmit={handleSubmit}
-          className="!rounded-[20px] !bg-white !border-0"
+        <div
+          className="rounded-[20px] bg-white [&_[data-slot=input-group]]:!border-0 [&_[data-slot=input-group]]:!shadow-none [&_[data-slot=input-group]]:!bg-transparent [&_[data-slot=input-group]]:!rounded-[20px]"
           style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)" }}
         >
+        <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -537,6 +537,7 @@ function ChatThreadPage() {
             <PromptInputSubmit status={status} disabled={(!input.trim() && pendingFiles.length === 0) || uploading} />
           </PromptInputFooter>
         </PromptInput>
+        </div>
       </div>
 
       <BottomTabBar />
