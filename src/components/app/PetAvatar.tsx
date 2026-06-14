@@ -1,32 +1,34 @@
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { speciesEmoji } from "@/lib/species";
 
 export function PetAvatar({
   name,
   url,
   size = 40,
+  species,
   className,
 }: {
   name: string;
   url?: string | null;
   size?: number;
+  species?: string | null;
   className?: string;
 }) {
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const emoji = speciesEmoji(species);
   return (
     <Avatar
-      className={cn("border border-border bg-accent", className)}
+      className={cn("bg-[color:var(--ai-soft)] ring-1 ring-border", className)}
       style={{ width: size, height: size }}
     >
       {url ? <AvatarImage src={url} alt={name} /> : null}
-      <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
-        {initials || "🐾"}
-      </AvatarFallback>
+      <span
+        className="flex h-full w-full items-center justify-center"
+        style={{ fontSize: Math.round(size * 0.55) }}
+        aria-label={name}
+      >
+        {emoji}
+      </span>
     </Avatar>
   );
 }

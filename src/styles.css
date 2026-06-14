@@ -18,8 +18,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -43,6 +43,7 @@
   --color-ai: var(--ai);
   --color-ai-foreground: var(--ai-foreground);
   --color-ai-soft: var(--ai-soft);
+  --color-warm: var(--warm);
   --color-appointment: var(--appointment);
   --color-vaccination: var(--vaccination);
   --color-health: var(--health);
@@ -60,15 +61,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06);
+  --shadow-soft: 0 1px 3px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.04);
   --shadow-floating: 0 8px 24px -8px rgb(0 0 0 / 0.18);
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 1.25rem;
   /* Warm off-white background #FAFAF8 */
   --background: oklch(0.984 0.004 95);
-  --foreground: oklch(0.22 0.02 150);
+  --foreground: oklch(0.18 0.005 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.02 150);
   --popover: oklch(1 0 0);
@@ -76,12 +77,14 @@
   /* Forest green #4A7C59 */
   --primary: oklch(0.52 0.09 150);
   --primary-foreground: oklch(0.99 0.005 95);
-  --secondary: oklch(0.95 0.012 120);
+  --secondary: oklch(0.96 0.008 145);
   --secondary-foreground: oklch(0.3 0.04 150);
-  --muted: oklch(0.95 0.008 95);
-  --muted-foreground: oklch(0.5 0.015 140);
-  --accent: oklch(0.93 0.03 145);
+  --muted: oklch(0.96 0.005 95);
+  --muted-foreground: oklch(0.55 0.01 30);
+  --accent: oklch(0.95 0.022 150);
   --accent-foreground: oklch(0.3 0.05 150);
+  /* Warm brown #8B6F5E */
+  --warm: oklch(0.54 0.04 50);
   /* Danger #C0392B */
   --destructive: oklch(0.55 0.19 28);
   --destructive-foreground: oklch(0.99 0.005 95);
@@ -89,14 +92,14 @@
   --input: oklch(0.92 0.008 95);
   --ring: oklch(0.52 0.09 150);
   /* AI accent #7B6CF6 */
-  --ai: oklch(0.62 0.18 290);
+  --ai: oklch(0.7 0.075 146);
   --ai-foreground: oklch(0.99 0.005 95);
-  --ai-soft: oklch(0.95 0.04 290);
+  --ai-soft: oklch(0.965 0.018 150);
   /* Entry dot colors */
   --appointment: oklch(0.62 0.18 250); /* #3B82F6 */
-  --vaccination: oklch(0.68 0.18 145); /* #22C55E */
+  --vaccination: oklch(0.7 0.075 146); /* #7BAF89 */
   --health: oklch(0.62 0.22 25);       /* #EF4444 */
-  --note: oklch(0.68 0.01 250);        /* #9CA3AF */
+  --note: oklch(0.54 0.04 50);         /* warm brown */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);

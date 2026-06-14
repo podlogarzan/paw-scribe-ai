@@ -249,11 +249,18 @@ function HomePage() {
                   className={cn(
                     "relative flex aspect-square flex-col items-center justify-start rounded-xl p-1 text-xs transition-colors md:text-sm",
                     inMonth ? "text-foreground hover:bg-accent" : "text-muted-foreground/40",
-                    isToday && "bg-primary/10 font-semibold text-primary",
-                    isSelected && "ring-2 ring-primary",
+                    !isToday && !isSelected && "",
                   )}
                 >
-                  <span className="leading-none mt-1">{format(day, "d")}</span>
+                  <span
+                    className={cn(
+                      "mt-1 flex h-7 w-7 items-center justify-center rounded-full leading-none transition-colors",
+                      isToday && "bg-primary font-semibold text-primary-foreground",
+                      !isToday && isSelected && "bg-primary text-primary-foreground",
+                    )}
+                  >
+                    {format(day, "d")}
+                  </span>
                   {dots.length > 0 ? (
                     <span className="absolute bottom-1 flex gap-0.5">
                       {dots.map((e) => <EntryDot key={e.id} type={e.type as EntryType} />)}
@@ -281,7 +288,7 @@ function HomePage() {
           setNewOpen(true);
         }}
         aria-label="Add entry"
-        className="fixed bottom-20 right-[calc(50%-13.75rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform active:scale-95 md:hidden"
+        className="fixed bottom-20 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform hover:scale-[1.03] active:scale-95 md:hidden"
         style={{ right: "max(calc(50% - 13.75rem), 1.25rem)" }}
       >
         <Plus className="h-6 w-6" />

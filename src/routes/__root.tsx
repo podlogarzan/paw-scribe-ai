@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PetVet — Pet Health Journal" },
+      { title: "Vetyco — Pet Health Journal" },
       { name: "description", content: "A calm pet health journal with an AI care companion." },
-      { name: "author", content: "PetVet" },
-      { property: "og:title", content: "PetVet — Pet Health Journal" },
+      { name: "author", content: "Vetyco" },
+      { property: "og:title", content: "Vetyco — Pet Health Journal" },
       { property: "og:description", content: "A calm pet health journal with an AI care companion." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -96,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
       },
     ],
   }),

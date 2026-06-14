@@ -63,7 +63,7 @@ function ProfilePage() {
                   p.id === activePetId ? "ring-2 ring-primary" : ""
                 }`}
               >
-                <PetAvatar name={p.name} url={p.avatar_url} size={48} />
+              <PetAvatar name={p.name} url={p.avatar_url} species={p.species} size={48} />
                 <div className="grid">
                   <span className="text-base font-semibold leading-tight">{p.name}</span>
                   <span className="text-xs text-muted-foreground">

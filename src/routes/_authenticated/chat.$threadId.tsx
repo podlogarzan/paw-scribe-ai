@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage, type FileUIPart } from "ai";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-import { Heart, History, ImagePlus, Plus, ShieldAlert, Trash2, X } from "lucide-react";
+import { History, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
@@ -43,6 +43,7 @@ import { Button } from "@/components/ui/button";
 import { useActivePet } from "@/stores/active-pet";
 import { toast } from "sonner";
 import { useIsDesktop } from "@/hooks/use-breakpoint";
+import { LogoMark } from "@/components/app/Logo";
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
   let binary = "";
@@ -347,10 +348,10 @@ function ChatThreadPage() {
     <AppShell rightPanel={rightPanel}>
       <AppHeader title="AI companion" />
 
-      <div className="flex items-center gap-2 border-b border-border bg-[color:var(--ai-soft)]/50 px-3 py-2 text-xs text-foreground">
+      <div className="flex items-center gap-2 border-b border-[#F0F0F0] bg-[color:var(--ai-soft)] px-3 py-2 text-xs text-foreground">
         <Sheet open={historyOpen && !isDesktop} onOpenChange={setHistoryOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 lg:hidden" aria-label="Conversation history">
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-[color:var(--warm)] lg:hidden" aria-label="Conversation history">
               <History className="h-4 w-4" />
             </Button>
           </SheetTrigger>
@@ -372,14 +373,13 @@ function ChatThreadPage() {
             </div>
           </SheetContent>
         </Sheet>
-        <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-[color:var(--ai)]" />
-        <p className="flex-1">
-          I can help you think through your pet's health, but I'm not a vet. For emergencies, call your vet right away.
+        <p className="flex-1 text-[color:var(--foreground)]/80">
+          Vetyco AI is not a veterinarian. For emergencies, call your vet.
         </p>
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 shrink-0"
+          className="h-7 w-7 shrink-0 text-[color:var(--warm)]"
           aria-label="New conversation"
           onClick={handleNewConversation}
         >
@@ -391,9 +391,7 @@ function ChatThreadPage() {
         <ConversationContent>
           {messages.length === 0 && !isLoading ? (
             <div className="flex flex-col items-center px-6 py-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ai-soft)] text-[color:var(--ai)]">
-                <Heart className="h-7 w-7" />
-              </div>
+              <LogoMark size={56} />
               <h3 className="mt-3 text-base font-semibold">Ask me anything about your pet</h3>
               <p className="mt-1 max-w-xs text-sm text-muted-foreground">
                 Try: "Luna threw up twice this morning" or "What's a normal weight for a 6-month-old border collie?"
@@ -408,7 +406,7 @@ function ChatThreadPage() {
             if (m.role === "user") {
               return (
               <Message key={m.id} from="user">
-                <MessageContent>
+                <MessageContent className="!rounded-[20px] !bg-primary !text-primary-foreground">
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-1.5">
                       {images.map((p, i) => (
@@ -416,7 +414,7 @@ function ChatThreadPage() {
                           key={i}
                           src={p.url}
                           alt=""
-                          className="h-32 w-full rounded-md object-cover"
+                          className="h-32 w-full rounded-2xl object-cover"
                         />
                       ))}
                     </div>
@@ -428,18 +426,19 @@ function ChatThreadPage() {
             }
             const entry = entryByMessageId[m.id];
             return (
-              <Message key={m.id} from="assistant">
-                <MessageContent className="!bg-transparent !p-0">
+              <Message key={m.id} from="assistant" className="!flex-row !items-start gap-2">
+                <LogoMark size={28} className="mt-1 shrink-0" />
+                <MessageContent className="!bg-transparent !p-0 flex-1">
                   {images.length > 0 && (
                     <div className="grid grid-cols-2 gap-1.5">
                       {images.map((p, i) => (
-                        <img key={i} src={p.url} alt="" className="h-32 w-full rounded-md object-cover" />
+                        <img key={i} src={p.url} alt="" className="h-32 w-full rounded-2xl object-cover" />
                       ))}
                     </div>
                   )}
                   <MessageResponse>{text}</MessageResponse>
                   {entry && (
-                    <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-[color:var(--ai)] px-3 py-1 text-xs font-medium text-white">
+                    <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-[color:var(--ai-soft)] px-3 py-1 text-xs font-medium text-primary">
                       <span>📅 Added to record: '{entry.title}'</span>
                       <button
                         type="button"
@@ -456,8 +455,9 @@ function ChatThreadPage() {
           })}
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <Message from="assistant">
-              <MessageContent className="!bg-transparent !p-0">
+            <Message from="assistant" className="!flex-row !items-start gap-2">
+              <LogoMark size={28} className="mt-1 shrink-0" />
+              <MessageContent className="!bg-transparent !p-0 flex-1">
                 <Shimmer>Thinking…</Shimmer>
               </MessageContent>
             </Message>
