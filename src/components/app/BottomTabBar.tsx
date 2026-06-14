@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { CalendarDays, Images, MessageCircleHeart } from "lucide-react";
+import { Calendar, Images, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/home", icon: CalendarDays, label: "Calendar" },
-  { to: "/chat", icon: MessageCircleHeart, label: "Chat" },
+  { to: "/home", icon: Calendar, label: "Calendar" },
+  { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/gallery", icon: Images, label: "Gallery" },
 ] as const;
 
@@ -12,7 +12,7 @@ export function BottomTabBar() {
   const { pathname } = useLocation();
   return (
     <nav
-      className="sticky bottom-0 z-30 mt-auto border-t border-border bg-card/95 backdrop-blur md:hidden"
+      className="sticky bottom-0 z-30 mt-auto border-t border-[#F0F0F0] bg-white/85 backdrop-blur-xl md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-md items-stretch">
@@ -22,13 +22,17 @@ export function BottomTabBar() {
             <li key={to} className="flex-1">
               <Link
                 to={to}
+                aria-label={label}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 py-3 text-xs font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-11 flex-col items-center justify-center py-3 transition-all duration-200",
+                  active ? "text-primary" : "text-[color:var(--warm)] hover:text-foreground",
                 )}
               >
-                <Icon className={cn("h-5 w-5", active && "fill-primary/10")} />
-                {label}
+                <Icon
+                  className="h-6 w-6"
+                  strokeWidth={active ? 2.5 : 1.75}
+                  fill={active ? "currentColor" : "none"}
+                />
               </Link>
             </li>
           );
