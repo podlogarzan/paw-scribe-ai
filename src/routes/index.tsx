@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   beforeLoad: () => {
-    throw redirect({ to: "/home", replace: true });
+    throw redirect({ to: "/chat", replace: true });
   },
   component: () => null,
 });

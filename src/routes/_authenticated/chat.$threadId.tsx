@@ -438,12 +438,15 @@ function ChatThreadPage() {
                   )}
                   <MessageResponse>{text}</MessageResponse>
                   {entry && (
-                    <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-[color:var(--ai-soft)] px-3 py-1 text-xs font-medium text-primary">
+                    <div
+                      className="mt-2 inline-flex items-center gap-3 self-start rounded-[20px] border-l-4 border-primary bg-white px-3 py-2 text-xs font-medium text-foreground"
+                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)" }}
+                    >
                       <span>📅 Added to record: '{entry.title}'</span>
                       <button
                         type="button"
                         onClick={() => handleUndoEntry(m.id, entry.id)}
-                        className="underline underline-offset-2 hover:no-underline"
+                        className="text-primary underline underline-offset-2 hover:no-underline"
                       >
                         Undo
                       </button>

@@ -288,8 +288,8 @@ function HomePage() {
           setNewOpen(true);
         }}
         aria-label="Add entry"
-        className="fixed bottom-20 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform hover:scale-[1.03] active:scale-95 md:hidden"
-        style={{ right: "max(calc(50% - 13.75rem), 1.25rem)" }}
+        className="fixed right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] transition-transform hover:scale-[1.03] active:scale-95 md:hidden"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 96px)" }}
       >
         <Plus className="h-6 w-6" />
       </button>
