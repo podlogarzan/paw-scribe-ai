@@ -149,22 +149,3 @@ export function useSidebarCollapsed() {
   }
   return { collapsed, toggle };
 }
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSignOut();
-              }}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </Link>
-        </div>
-      ) : null}
-    </aside>
-  );
-}
