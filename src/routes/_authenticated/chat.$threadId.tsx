@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage, type FileUIPart } from "ai";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-import { History, ImagePlus, MessageCircle, Plus, Trash2, X } from "lucide-react";
+import { History, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/app/AppShell";
 import { AppHeader } from "@/components/app/AppHeader";
