@@ -38,7 +38,7 @@ export function SideNav({
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/chat", replace: true });
   }
 
   return (
