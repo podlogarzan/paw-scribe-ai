@@ -56,7 +56,7 @@ function OnboardingPage() {
       setActive(pet.id);
       qc.invalidateQueries({ queryKey: ["pets"] });
       toast.success(`${pet.name} added`);
-      navigate({ to: "/home", replace: true });
+      navigate({ to: "/chat", replace: true });
     },
     onError: (e: any) => toast.error(e?.message ?? "Could not save"),
   });
