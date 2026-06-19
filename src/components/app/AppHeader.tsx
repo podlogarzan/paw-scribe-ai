@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import iconBlack from "@/assets/vetyco-icon-black.svg.asset.json";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -52,8 +53,8 @@ export function AppHeader({ title: _title }: { title?: string }) {
               className="flex min-w-0 items-center gap-3 rounded-full text-left"
               aria-label="Account menu"
             >
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#7BAF89] text-white text-sm font-bold uppercase">
-                {(name?.[0] ?? "V")}
+              <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-white shadow-[var(--shadow-soft)]">
+                <img src={iconBlack.url} alt="Vetyco" className="h-7 w-7" />
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-medium text-muted-foreground">
