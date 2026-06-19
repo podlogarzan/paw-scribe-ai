@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listPets } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
+import wordmark from "@/assets/vetyco-wordmark-white.svg.asset.json";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -24,7 +25,8 @@ function SplashScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    const minDelay = new Promise((r) => setTimeout(r, 1400));
+    // Reveal (650ms) + hold (400ms) ≈ 1.05s minimum on-screen
+    const minDelay = new Promise((r) => setTimeout(r, 1050));
 
     const work = (async () => {
       let { data } = await supabase.auth.getUser();
@@ -52,7 +54,7 @@ function SplashScreen() {
             }
             navigate({ to: "/chat", replace: true });
           }
-        }, 450);
+        }, 300);
       })
       .catch(() => {
         if (cancelled) return;
@@ -66,32 +68,25 @@ function SplashScreen() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-500 ease-out"
+      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ease-out"
       style={{
         backgroundColor: "#7BAF89",
         opacity: leaving ? 0 : 1,
       }}
     >
-      <div
-        className="flex items-center justify-center rounded-3xl bg-white/95 shadow-2xl"
-        style={{
-          width: 112,
-          height: 112,
-          animation: "splash-reveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both",
-        }}
-        aria-label="Vetyco"
-      >
-        <span
-          className="font-bold leading-none"
-          style={{ color: "#7BAF89", fontSize: 64 }}
-        >
-          v
-        </span>
-      </div>
+      <img
+        src={wordmark.url}
+        alt="Vetyco"
+        className="splash-wordmark"
+        style={{ width: "min(60vw, 260px)", height: "auto" }}
+      />
       <style>{`
-        @keyframes splash-reveal {
-          0% { opacity: 0; transform: scale(0.86); }
-          100% { opacity: 1; transform: scale(1); }
+        @keyframes splash-unfold {
+          0% { opacity: 0; clip-path: inset(0 50% 0 50%); }
+          100% { opacity: 1; clip-path: inset(0 0 0 0); }
+        }
+        .splash-wordmark {
+          animation: splash-unfold 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
       `}</style>
     </div>
