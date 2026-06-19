@@ -1,17 +1,14 @@
 import { cn } from "@/lib/utils";
+import iconBlack from "@/assets/vetyco-icon-black.svg.asset.json";
 
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
   return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold",
-        className,
-      )}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.5) }}
-      aria-label="Vetyco"
-    >
-      v
-    </div>
+    <img
+      src={iconBlack.url}
+      alt="Vetyco"
+      className={cn("block rounded-2xl", className)}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
