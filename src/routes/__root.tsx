@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Vetyco — Pet Health Journal" },
+      { name: "twitter:description", content: "A calm pet health journal with an AI care companion." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1ab51ec2-6fe3-4438-b92a-e3f19c8a8a67/id-preview-4ddd27b5--5589031c-f410-4827-a0d8-fcc2578d3427.lovable.app-1781953037960.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1ab51ec2-6fe3-4438-b92a-e3f19c8a8a67/id-preview-4ddd27b5--5589031c-f410-4827-a0d8-fcc2578d3427.lovable.app-1781953037960.png" },
     ],
     links: [
       {
