@@ -29,22 +29,23 @@ function SplashScreen() {
     const minDelay = new Promise((r) => setTimeout(r, 1050));
 
     const work = (async () => {
-      let { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        const { data: anon, error } = await supabase.auth.signInAnonymously();
-        if (error || !anon.user) throw error ?? new Error("Failed to start session");
-        data = { user: anon.user };
-      }
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return { signedIn: false as const, pets: [] };
       const pets = await fetchPets();
-      return pets;
+      return { signedIn: true as const, pets };
     })();
 
     Promise.all([work, minDelay])
-      .then(([pets]) => {
+      .then(([result]) => {
         if (cancelled) return;
         setLeaving(true);
         setTimeout(() => {
           if (cancelled) return;
+          if (!result.signedIn) {
+            navigate({ to: "/auth", replace: true });
+            return;
+          }
+          const pets = result.pets;
           if (!pets || pets.length === 0) {
             navigate({ to: "/onboarding", replace: true });
           } else {
@@ -58,7 +59,7 @@ function SplashScreen() {
       })
       .catch(() => {
         if (cancelled) return;
-        navigate({ to: "/onboarding", replace: true });
+        navigate({ to: "/auth", replace: true });
       });
 
     return () => {
