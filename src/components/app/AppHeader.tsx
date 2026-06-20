@@ -41,7 +41,7 @@ export function AppHeader({ title: _title }: { title?: string }) {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/chat", replace: true });
+    navigate({ to: "/auth", replace: true });
   }
 
   return (
