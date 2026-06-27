@@ -32,6 +32,7 @@ import {
   undoAiEntry,
 } from "@/lib/conversations.functions";
 import { uploadChatImage } from "@/lib/chat-images.functions";
+import { listPets } from "@/lib/pets.functions";
 import {
   Sheet,
   SheetContent,
@@ -82,6 +83,7 @@ function ChatThreadPage() {
   const uploadImage = useServerFn(uploadChatImage);
   const createAiEntry = useServerFn(createAiEntryFromAutolog);
   const undoEntry = useServerFn(undoAiEntry);
+  const fetchPets = useServerFn(listPets);
   const activePetId = useActivePet((s) => s.activePetId);
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -103,6 +105,39 @@ function ChatThreadPage() {
     queryFn: () => fetchConversations({ data: { petId: activePetId! } }),
     enabled: !!activePetId,
   });
+
+  const petsQ = useQuery({ queryKey: ["pets"], queryFn: () => fetchPets() });
+  const activePet = petsQ.data?.find((p: any) => p.id === activePetId) ?? null;
+
+  const emptyState = useMemo(() => {
+    const fallback = {
+      heading: "Ask me anything about your pet",
+      example:
+        "Try: \"Luna threw up twice this morning\" or \"What's a normal weight for a 6-month-old border collie?\"",
+    };
+    const pet: any = activePet;
+    if (!pet?.name) return fallback;
+    const species = (pet.species ?? "").toString().trim().toLowerCase();
+    const breed = (pet.breed ?? "").toString().trim();
+    const isMixed = !breed || /mixed breed|don't know|dont know|unknown/i.test(breed);
+    const descriptor = isMixed ? (species || "pet") : breed;
+    let ageStr = "";
+    if (pet.birth_date) {
+      const b = new Date(pet.birth_date);
+      if (!isNaN(b.getTime())) {
+        const now = new Date();
+        let months = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth());
+        if (now.getDate() < b.getDate()) months -= 1;
+        if (months < 12 && months >= 0) ageStr = `${Math.max(months, 1)}-month-old`;
+        else if (months >= 12) ageStr = `${Math.floor(months / 12)}-year-old`;
+      }
+    }
+    const subject = ageStr ? `a ${ageStr} ${descriptor}` : `a ${descriptor}`;
+    return {
+      heading: `Ask me anything about ${pet.name}`,
+      example: `Try: "${pet.name} threw up twice this morning" or "What's a normal weight for ${subject}?"`,
+    };
+  }, [activePet]);
 
   const initialMessages: UIMessage[] = useMemo(
     () =>
@@ -402,10 +437,8 @@ function ChatThreadPage() {
           {messages.length === 0 && !isLoading ? (
             <div className="flex flex-col items-center px-6 py-10 text-center">
               <PawAvatar size={36} />
-              <h3 className="mt-3 text-sm font-semibold">Ask me anything about your pet</h3>
-              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-                Try: "Luna threw up twice this morning" or "What's a normal weight for a 6-month-old border collie?"
-              </p>
+              <h3 className="mt-3 text-sm font-semibold">{emptyState.heading}</h3>
+              <p className="mt-1 max-w-xs text-xs text-muted-foreground">{emptyState.example}</p>
             </div>
           ) : null}
 
