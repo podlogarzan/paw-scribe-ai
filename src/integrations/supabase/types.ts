@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      breeds: {
+        Row: {
+          breed_name: string
+          created_at: string
+          display_order: number
+          general_prompt: string
+          id: string
+          is_mixed_unknown: boolean
+          species: string
+        }
+        Insert: {
+          breed_name: string
+          created_at?: string
+          display_order?: number
+          general_prompt: string
+          id?: string
+          is_mixed_unknown?: boolean
+          species: string
+        }
+        Update: {
+          breed_name?: string
+          created_at?: string
+          display_order?: number
+          general_prompt?: string
+          id?: string
+          is_mixed_unknown?: boolean
+          species?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
