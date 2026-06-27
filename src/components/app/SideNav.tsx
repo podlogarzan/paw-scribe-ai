@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, Images, LogOut, MessageCircle, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { listPets } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
@@ -10,13 +10,6 @@ import { PetAvatar } from "@/components/app/PetAvatar";
 import { LogoMark } from "@/components/app/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const items = [
   { to: "/home", icon: CalendarDays, label: "Calendar" },
@@ -40,12 +33,33 @@ export function SideNav({
   const { data: pets } = useQuery({ queryKey: ["pets"], queryFn: () => fetchPets() });
   const { activePetId, setActivePetId } = useActivePet();
   const activePet = pets?.find((p) => p.id === activePetId) ?? pets?.[0] ?? null;
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const switcherRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!switcherOpen) return;
+    function onDown(e: MouseEvent) {
+      if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
+        setSwitcherOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setSwitcherOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [switcherOpen]);
 
   function handleSelectPet(id: string) {
     setActivePetId(id);
     qc.invalidateQueries({ queryKey: ["entries"] });
     qc.invalidateQueries({ queryKey: ["gallery"] });
     qc.invalidateQueries({ queryKey: ["conversations"] });
+    setSwitcherOpen(false);
   }
 
   async function handleSignOut() {
@@ -107,74 +121,38 @@ export function SideNav({
       </nav>
 
       {activePet ? (
-        <div className={cn("m-3 rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}>
+        <div
+          ref={switcherRef}
+          className={cn("relative m-3 rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}
+        >
           <div className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    "flex min-w-0 flex-1 items-center gap-2 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    collapsed && "justify-center",
-                  )}
-                  aria-label="Switch pet"
-                >
-                  <PetAvatar
-                    name={activePet.name}
-                    url={activePet.avatar_url}
-                    species={activePet.species}
-                    size={36}
-                  />
-                  {!collapsed && (
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{activePet.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        {activePet.species}
-                        {activePet.breed ? ` · ${activePet.breed}` : ""}
-                      </div>
-                    </div>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                side="top"
-                sideOffset={8}
-                avoidCollisions={false}
-                className="w-(--radix-dropdown-menu-trigger-width) p-1"
-              >
-                {(pets ?? []).map((p) => {
-                  const isActive = p.id === activePet.id;
-                  return (
-                    <DropdownMenuItem
-                      key={p.id}
-                      onSelect={() => handleSelectPet(p.id)}
-                      className="gap-2 p-2"
-                    >
-                      <PetAvatar name={p.name} url={p.avatar_url} species={p.species} size={32} />
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold">{p.name}</div>
-                        <div className="truncate text-xs text-muted-foreground">
-                          {p.species}
-                          {p.breed ? ` · ${p.breed}` : ""}
-                        </div>
-                      </div>
-                      {isActive && <Check className="h-4 w-4 text-primary" />}
-                    </DropdownMenuItem>
-                  );
-                })}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() => navigate({ to: "/onboarding" })}
-                  className="gap-2 p-2"
-                >
-                  <div className="grid h-8 w-8 place-items-center rounded-full bg-accent">
-                    <Plus className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={() => setSwitcherOpen((o) => !o)}
+              className={cn(
+                "flex min-w-0 flex-1 items-center gap-2 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                collapsed && "justify-center",
+              )}
+              aria-label="Switch pet"
+              aria-haspopup="menu"
+              aria-expanded={switcherOpen}
+            >
+              <PetAvatar
+                name={activePet.name}
+                url={activePet.avatar_url}
+                species={activePet.species}
+                size={36}
+              />
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{activePet.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {activePet.species}
+                    {activePet.breed ? ` · ${activePet.breed}` : ""}
                   </div>
-                  <span className="text-sm font-medium">Add new pet</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </div>
+              )}
+            </button>
             {!collapsed && (
               <button
                 type="button"
@@ -186,6 +164,50 @@ export function SideNav({
               </button>
             )}
           </div>
+          {switcherOpen && (
+            <div
+              role="menu"
+              className="absolute bottom-full left-0 right-0 mb-2 z-50 rounded-2xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+            >
+              {(pets ?? []).map((p) => {
+                const isActive = p.id === activePet.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleSelectPet(p.id)}
+                    className="flex w-full items-center gap-2 rounded-xl p-2 text-left hover:bg-accent"
+                  >
+                    <PetAvatar name={p.name} url={p.avatar_url} species={p.species} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {p.species}
+                        {p.breed ? ` · ${p.breed}` : ""}
+                      </div>
+                    </div>
+                    {isActive && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                  </button>
+                );
+              })}
+              <div className="-mx-1 my-1 h-px bg-muted" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setSwitcherOpen(false);
+                  navigate({ to: "/onboarding" });
+                }}
+                className="flex w-full items-center gap-2 rounded-xl p-2 text-left hover:bg-accent"
+              >
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-accent">
+                  <Plus className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">Add new pet</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
     </aside>
