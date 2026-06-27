@@ -11,8 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { createPet } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
-import { SPECIES, EXTRA_SPECIES } from "@/lib/species";
+import { SPECIES, EXTRA_SPECIES, speciesLabel } from "@/lib/species";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadPetAvatar } from "@/lib/pets.functions";
+import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -23,6 +25,7 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const create = useServerFn(createPet);
+  const uploadAvatar = useServerFn(uploadPetAvatar);
   const setActive = useActivePet((s) => s.setActivePetId);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -34,6 +37,8 @@ function OnboardingPage() {
   const [birth, setBirth] = useState("");
   const [sex, setSex] = useState("");
   const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const otherMatches = useMemo(() => {
     const q = otherQuery.trim().toLowerCase();
