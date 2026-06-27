@@ -195,7 +195,6 @@ function OnboardingPage() {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Luna" autoFocus className="h-12 rounded-2xl" />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="breed">Breed (optional)</Label>
               <Label>Breed</Label>
               {breedsQuery.isLoading ? (
                 <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">Loading breeds…</div>
