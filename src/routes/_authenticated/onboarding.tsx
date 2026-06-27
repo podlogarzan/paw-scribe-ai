@@ -196,13 +196,44 @@ function OnboardingPage() {
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="breed">Breed (optional)</Label>
-              <Input id="breed" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Border collie" className="h-12 rounded-2xl" />
+              <Label>Breed</Label>
+              {breedsQuery.isLoading ? (
+                <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">Loading breeds…</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {breedList.map((b) => {
+                    const selected = breed === b.breed_name;
+                    return (
+                      <button
+                        key={b.breed_name}
+                        type="button"
+                        onClick={() => setBreed(b.breed_name)}
+                        className={cn(
+                          "rounded-2xl border bg-card px-3 py-3 text-sm font-medium transition-all hover:scale-[1.01] text-left",
+                          b.is_mixed_unknown && "border-dashed",
+                          selected
+                            ? "border-primary bg-[color:var(--ai-soft)] ring-2 ring-primary"
+                            : "border-border",
+                        )}
+                      >
+                        {b.breed_name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <Button
               size="lg"
               className="mt-2 h-12 w-full rounded-full text-base"
               disabled={!name.trim()}
-              onClick={() => setStep(3)}
+              onClick={() => {
+                if (!breed) {
+                  const fallback = breedList.find((b) => b.is_mixed_unknown) ?? breedList[0];
+                  if (fallback) setBreed(fallback.breed_name);
+                }
+                setStep(3);
+              }}
             >
               Continue
             </Button>
