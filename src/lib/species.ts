@@ -11,6 +11,7 @@ export const SPECIES: SpeciesOption[] = [
   { value: "turtle", label: "Turtle", emoji: "🐢" },
   { value: "snake", label: "Snake", emoji: "🐍" },
   { value: "lizard", label: "Lizard", emoji: "🦎" },
+  { value: "spider", label: "Spider", emoji: "🕷️" },
 ];
 
 export const EXTRA_SPECIES: SpeciesOption[] = [
