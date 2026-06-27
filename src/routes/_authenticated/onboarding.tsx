@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,6 +120,16 @@ function OnboardingPage() {
             />
           ))}
         </div>
+        {step > 1 && (
+          <button
+            type="button"
+            onClick={() => setStep((step - 1) as 1 | 2)}
+            className="mb-3 -ml-2 inline-flex items-center gap-1 self-start rounded-full px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+        )}
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
           {step === 1
             ? "What's your pet?"
