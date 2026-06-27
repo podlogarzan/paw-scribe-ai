@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, ChevronLeft, ChevronRight, Images, LogOut, MessageCircle } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Images, LogOut, MessageCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { listPets } from "@/lib/pets.functions";
@@ -10,6 +10,13 @@ import { PetAvatar } from "@/components/app/PetAvatar";
 import { LogoMark } from "@/components/app/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const items = [
   { to: "/home", icon: CalendarDays, label: "Calendar" },
@@ -31,8 +38,15 @@ export function SideNav({
   const qc = useQueryClient();
   const fetchPets = useServerFn(listPets);
   const { data: pets } = useQuery({ queryKey: ["pets"], queryFn: () => fetchPets() });
-  const { activePetId } = useActivePet();
+  const { activePetId, setActivePetId } = useActivePet();
   const activePet = pets?.find((p) => p.id === activePetId) ?? pets?.[0] ?? null;
+
+  function handleSelectPet(id: string) {
+    setActivePetId(id);
+    qc.invalidateQueries({ queryKey: ["entries"] });
+    qc.invalidateQueries({ queryKey: ["gallery"] });
+    qc.invalidateQueries({ queryKey: ["conversations"] });
+  }
 
   async function handleSignOut() {
     await qc.cancelQueries();
@@ -94,36 +108,78 @@ export function SideNav({
 
       {activePet ? (
         <div className={cn("m-3 rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}>
-          <Link to="/profile" className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
-            <PetAvatar
-              name={activePet.name}
-              url={activePet.avatar_url}
-              species={activePet.species}
-              size={36}
-            />
-            {!collapsed && (
-              <>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{activePet.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {activePet.species}
-                    {activePet.breed ? ` · ${activePet.breed}` : ""}
-                  </div>
-                </div>
+          <div className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSignOut();
-                  }}
-                  className="rounded-md p-1.5 text-[color:var(--warm)] hover:bg-accent"
-                  aria-label="Sign out"
+                  className={cn(
+                    "flex min-w-0 flex-1 items-center gap-2 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    collapsed && "justify-center",
+                  )}
+                  aria-label="Switch pet"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <PetAvatar
+                    name={activePet.name}
+                    url={activePet.avatar_url}
+                    species={activePet.species}
+                    size={36}
+                  />
+                  {!collapsed && (
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{activePet.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {activePet.species}
+                        {activePet.breed ? ` · ${activePet.breed}` : ""}
+                      </div>
+                    </div>
+                  )}
                 </button>
-              </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="top" className="w-64 p-1">
+                {(pets ?? []).map((p) => {
+                  const isActive = p.id === activePet.id;
+                  return (
+                    <DropdownMenuItem
+                      key={p.id}
+                      onSelect={() => handleSelectPet(p.id)}
+                      className="gap-2 p-2"
+                    >
+                      <PetAvatar name={p.name} url={p.avatar_url} species={p.species} size={32} />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold">{p.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {p.species}
+                          {p.breed ? ` · ${p.breed}` : ""}
+                        </div>
+                      </div>
+                      {isActive && <Check className="h-4 w-4 text-primary" />}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => navigate({ to: "/onboarding" })}
+                  className="gap-2 p-2"
+                >
+                  <div className="grid h-8 w-8 place-items-center rounded-full bg-accent">
+                    <Plus className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Add new pet</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="rounded-md p-1.5 text-[color:var(--warm)] hover:bg-accent"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             )}
-          </Link>
+          </div>
         </div>
       ) : null}
     </aside>
