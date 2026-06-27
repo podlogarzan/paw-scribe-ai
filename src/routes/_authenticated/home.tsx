@@ -308,14 +308,14 @@ function HomePage() {
                   key={key}
                   onClick={() => setSelectedDay(day)}
                   className={cn(
-                    "relative flex aspect-square flex-col items-center justify-start rounded-xl p-1 text-xs transition-colors md:text-sm",
+                    "relative flex h-14 flex-col items-center justify-start rounded-lg p-0.5 text-[11px] transition-colors",
                     inMonth ? "text-foreground hover:bg-accent" : "text-muted-foreground/40",
                     !isToday && !isSelected && "",
                   )}
                 >
                   <span
                     className={cn(
-                      "mt-1 flex h-7 w-7 items-center justify-center rounded-full leading-none transition-colors",
+                      "mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[11px] leading-none transition-colors",
                       isToday && "bg-primary font-semibold text-primary-foreground",
                       !isToday && isSelected && "bg-primary text-primary-foreground",
                     )}
@@ -323,7 +323,7 @@ function HomePage() {
                     {format(day, "d")}
                   </span>
                   {dots.length > 0 ? (
-                    <span className="absolute bottom-1 flex gap-0.5">
+                    <span className="absolute bottom-1 flex gap-[2px]">
                       {dots.map((e) => <EntryDot key={e.id} type={e.type as EntryType} />)}
                     </span>
                   ) : null}
