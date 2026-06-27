@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPet } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
 import { SPECIES, EXTRA_SPECIES } from "@/lib/species";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -40,6 +41,30 @@ function OnboardingPage() {
     return EXTRA_SPECIES.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 12);
   }, [otherQuery]);
 
+  const breedsQuery = useQuery({
+    queryKey: ["breeds", species],
+    enabled: !!species,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("breeds")
+        .select("breed_name,is_mixed_unknown,display_order")
+        .eq("species", species)
+        .order("display_order", { ascending: true });
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
+
+  const breedList = useMemo(() => {
+    const rows = breedsQuery.data ?? [];
+    if (rows.length === 0) {
+      return [{ breed_name: "Mixed breed / Don't know", is_mixed_unknown: true, display_order: 9999 }];
+    }
+    const real = rows.filter((r) => !r.is_mixed_unknown);
+    const fallback = rows.filter((r) => r.is_mixed_unknown);
+    return [...real, ...fallback];
+  }, [breedsQuery.data]);
+
   const mut = useMutation({
     mutationFn: () =>
       create({
@@ -60,6 +85,14 @@ function OnboardingPage() {
     },
     onError: (e: any) => toast.error(e?.message ?? "Could not save"),
   });
+
+  // When advancing to step 2, ensure a breed default exists
+  useEffect(() => {
+    if (step !== 2) return;
+    if (breed) return;
+    if (breedList.length === 0) return;
+    // do not auto-select until user tries continue; leave empty
+  }, [step, breed, breedList]);
 
   return (
     <div className="min-h-screen bg-background">
