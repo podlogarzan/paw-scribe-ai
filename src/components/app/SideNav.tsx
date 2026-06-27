@@ -136,7 +136,13 @@ export function SideNav({
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="top" className="w-64 p-1">
+              <DropdownMenuContent
+                align="start"
+                side="top"
+                sideOffset={8}
+                avoidCollisions={false}
+                className="w-(--radix-dropdown-menu-trigger-width) p-1"
+              >
                 {(pets ?? []).map((p) => {
                   const isActive = p.id === activePet.id;
                   return (
