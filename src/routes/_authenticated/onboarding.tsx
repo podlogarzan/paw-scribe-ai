@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -85,14 +85,6 @@ function OnboardingPage() {
     },
     onError: (e: any) => toast.error(e?.message ?? "Could not save"),
   });
-
-  // When advancing to step 2, ensure a breed default exists
-  useEffect(() => {
-    if (step !== 2) return;
-    if (breed) return;
-    if (breedList.length === 0) return;
-    // do not auto-select until user tries continue; leave empty
-  }, [step, breed, breedList]);
 
   return (
     <div className="min-h-screen bg-background">
