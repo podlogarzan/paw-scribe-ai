@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPet } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
 import { SPECIES, EXTRA_SPECIES } from "@/lib/species";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -39,6 +40,30 @@ function OnboardingPage() {
     if (!q) return EXTRA_SPECIES.slice(0, 12);
     return EXTRA_SPECIES.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 12);
   }, [otherQuery]);
+
+  const breedsQuery = useQuery({
+    queryKey: ["breeds", species],
+    enabled: !!species,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("breeds")
+        .select("breed_name,is_mixed_unknown,display_order")
+        .eq("species", species)
+        .order("display_order", { ascending: true });
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
+
+  const breedList = useMemo(() => {
+    const rows = breedsQuery.data ?? [];
+    if (rows.length === 0) {
+      return [{ breed_name: "Mixed breed / Don't know", is_mixed_unknown: true, display_order: 9999 }];
+    }
+    const real = rows.filter((r) => !r.is_mixed_unknown);
+    const fallback = rows.filter((r) => r.is_mixed_unknown);
+    return [...real, ...fallback];
+  }, [breedsQuery.data]);
 
   const mut = useMutation({
     mutationFn: () =>
@@ -162,14 +187,44 @@ function OnboardingPage() {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Luna" autoFocus className="h-12 rounded-2xl" />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="breed">Breed (optional)</Label>
-              <Input id="breed" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Border collie" className="h-12 rounded-2xl" />
+              <Label>Breed</Label>
+              {breedsQuery.isLoading ? (
+                <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">Loading breeds…</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {breedList.map((b) => {
+                    const selected = breed === b.breed_name;
+                    return (
+                      <button
+                        key={b.breed_name}
+                        type="button"
+                        onClick={() => setBreed(b.breed_name)}
+                        className={cn(
+                          "rounded-2xl border bg-card px-3 py-3 text-sm font-medium transition-all hover:scale-[1.01] text-left",
+                          b.is_mixed_unknown && "border-dashed",
+                          selected
+                            ? "border-primary bg-[color:var(--ai-soft)] ring-2 ring-primary"
+                            : "border-border",
+                        )}
+                      >
+                        {b.breed_name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <Button
               size="lg"
               className="mt-2 h-12 w-full rounded-full text-base"
               disabled={!name.trim()}
-              onClick={() => setStep(3)}
+              onClick={() => {
+                if (!breed) {
+                  const fallback = breedList.find((b) => b.is_mixed_unknown) ?? breedList[0];
+                  if (fallback) setBreed(fallback.breed_name);
+                }
+                setStep(3);
+              }}
             >
               Continue
             </Button>
