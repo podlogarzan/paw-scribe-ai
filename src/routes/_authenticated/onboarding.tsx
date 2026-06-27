@@ -11,8 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { createPet } from "@/lib/pets.functions";
 import { useActivePet } from "@/stores/active-pet";
-import { SPECIES, EXTRA_SPECIES } from "@/lib/species";
+import { SPECIES, EXTRA_SPECIES, speciesLabel } from "@/lib/species";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadPetAvatar } from "@/lib/pets.functions";
+import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -23,6 +25,7 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const create = useServerFn(createPet);
+  const uploadAvatar = useServerFn(uploadPetAvatar);
   const setActive = useActivePet((s) => s.setActivePetId);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -34,6 +37,8 @@ function OnboardingPage() {
   const [birth, setBirth] = useState("");
   const [sex, setSex] = useState("");
   const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const otherMatches = useMemo(() => {
     const q = otherQuery.trim().toLowerCase();
@@ -66,8 +71,8 @@ function OnboardingPage() {
   }, [breedsQuery.data]);
 
   const mut = useMutation({
-    mutationFn: () =>
-      create({
+    mutationFn: async (opts: { withPhoto: boolean }) => {
+      const pet = await create({
         data: {
           name: name.trim(),
           species,
@@ -76,7 +81,21 @@ function OnboardingPage() {
           sex: sex || null,
           notes: notes.trim() || null,
         },
-      }),
+      });
+      if (opts.withPhoto && photoFile) {
+        try {
+          const buf = await photoFile.arrayBuffer();
+          let binary = "";
+          const bytes = new Uint8Array(buf);
+          for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+          const fileBase64 = btoa(binary);
+          await uploadAvatar({ data: { petId: pet.id, fileBase64, mimeType: photoFile.type } });
+        } catch (err: any) {
+          toast.warning("Photo upload failed — you can add it later");
+        }
+      }
+      return pet;
+    },
     onSuccess: (pet) => {
       setActive(pet.id);
       qc.invalidateQueries({ queryKey: ["pets"] });
@@ -102,7 +121,11 @@ function OnboardingPage() {
           ))}
         </div>
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
-          {step === 1 ? "What's your pet?" : step === 2 ? "Tell us about them" : "A few more details"}
+          {step === 1
+            ? "What's your pet?"
+            : step === 2
+              ? `Tell us about your ${species ? speciesLabel(species).toLowerCase() : "them"}`
+              : "A few more details"}
         </h1>
 
         {step === 1 ? (
@@ -232,6 +255,28 @@ function OnboardingPage() {
         ) : (
           <div className="grid gap-4">
             <div className="grid gap-1.5">
+              <Label>Add a photo (optional)</Label>
+              <div className="flex justify-center">
+                <label className="relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-card transition-colors hover:border-primary">
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setPhotoFile(f);
+                      setPhotoPreview(f ? URL.createObjectURL(f) : null);
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="grid gap-1.5">
               <Label htmlFor="birth">Birthday (optional)</Label>
               <Input id="birth" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} className="h-12 rounded-2xl" />
             </div>
@@ -250,10 +295,10 @@ function OnboardingPage() {
               <Textarea id="notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Allergies, fears, quirks…" className="rounded-2xl" />
             </div>
             <div className="mt-2 flex gap-2">
-              <Button variant="ghost" onClick={() => mut.mutate()} disabled={mut.isPending} className="h-12 flex-1 rounded-full">
+              <Button variant="ghost" onClick={() => mut.mutate({ withPhoto: false })} disabled={mut.isPending} className="h-12 flex-1 rounded-full">
                 Skip
               </Button>
-              <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="h-12 flex-1 rounded-full text-base">
+              <Button onClick={() => mut.mutate({ withPhoto: true })} disabled={mut.isPending} className="h-12 flex-1 rounded-full text-base">
                 {mut.isPending ? "Saving…" : "Finish"}
               </Button>
             </div>
