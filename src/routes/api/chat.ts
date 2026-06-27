@@ -30,9 +30,34 @@ export const Route = createFileRoute("/api/chat")({
         const gateway = createLovableAiGatewayProvider(key);
         const model = gateway("google/gemini-3-flash-preview");
 
+        let systemPrompt = SYSTEM_PROMPT;
+        if (body.petId) {
+          try {
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            const { data: pet } = await supabaseAdmin
+              .from("pets")
+              .select("species, breed")
+              .eq("id", body.petId)
+              .maybeSingle();
+            if (pet?.species && pet?.breed) {
+              const { data: breedRow } = await supabaseAdmin
+                .from("breeds")
+                .select("breed_name, species, general_prompt")
+                .eq("species", pet.species)
+                .eq("breed_name", pet.breed)
+                .maybeSingle();
+              if (breedRow) {
+                systemPrompt += `\n\nThis pet is a ${breedRow.breed_name} (${breedRow.species}). Breed-specific context: ${breedRow.general_prompt} Use this context naturally when relevant, but don't lecture the owner about it unprompted — only bring it up when it's actually useful for their question.`;
+              }
+            }
+          } catch (err) {
+            console.error("Failed to load breed context:", err);
+          }
+        }
+
         const result = streamText({
           model,
-          system: SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: await convertToModelMessages(incoming),
         });
 
