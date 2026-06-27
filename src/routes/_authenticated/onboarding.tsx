@@ -110,7 +110,7 @@ function OnboardingPage() {
                   showOther ? "border-primary ring-2 ring-primary" : "border-border",
                 )}
               >
-                <span className="text-3xl">🐾</span>
+                <span className="text-3xl">❓</span>
                 <span>Other</span>
               </button>
             </div>
