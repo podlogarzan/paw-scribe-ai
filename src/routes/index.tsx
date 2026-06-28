@@ -69,7 +69,7 @@ function SplashScreen() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ease-out"
+      className="fixed inset-0 z-50 transition-opacity duration-300 ease-out"
       style={{
         backgroundColor: "#7BAF89",
         opacity: leaving ? 0 : 1,
@@ -77,19 +77,21 @@ function SplashScreen() {
         width: "100vw",
       }}
     >
-      <img
-        src={wordmark.url}
-        alt="Vetyco"
-        className="splash-wordmark"
-        style={{ width: "min(60vw, 260px)", height: "auto" }}
-      />
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <img
+          src={wordmark.url}
+          alt="Vetyco"
+          className="splash-wordmark block"
+          style={{ width: "min(60vw, 260px)", height: "auto" }}
+        />
+      </div>
       <style>{`
         @keyframes splash-unfold {
           0% { opacity: 0; clip-path: inset(0 0 0 100%); }
           100% { opacity: 1; clip-path: inset(0 0 0 0%); }
         }
         .splash-wordmark {
-          animation: splash-unfold 1600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: splash-unfold 1600ms ease-in-out both;
         }
       `}</style>
     </div>
