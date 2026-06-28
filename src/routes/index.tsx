@@ -25,8 +25,8 @@ function SplashScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    // Reveal (650ms) + hold (400ms) ≈ 1.05s minimum on-screen
-    const minDelay = new Promise((r) => setTimeout(r, 1050));
+    // Reveal (1600ms) + hold (450ms) ≈ 2.05s minimum on-screen
+    const minDelay = new Promise((r) => setTimeout(r, 2050));
 
     const work = (async () => {
       const { data } = await supabase.auth.getUser();
@@ -73,6 +73,8 @@ function SplashScreen() {
       style={{
         backgroundColor: "#7BAF89",
         opacity: leaving ? 0 : 1,
+        height: "100dvh",
+        width: "100vw",
       }}
     >
       <img
@@ -83,11 +85,11 @@ function SplashScreen() {
       />
       <style>{`
         @keyframes splash-unfold {
-          0% { opacity: 0; clip-path: inset(0 50% 0 50%); }
-          100% { opacity: 1; clip-path: inset(0 0 0 0); }
+          0% { opacity: 0; clip-path: inset(0 0 0 100%); }
+          100% { opacity: 1; clip-path: inset(0 0 0 0%); }
         }
         .splash-wordmark {
-          animation: splash-unfold 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: splash-unfold 1600ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
       `}</style>
     </div>
