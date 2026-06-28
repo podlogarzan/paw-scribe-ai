@@ -121,53 +121,11 @@ export function SideNav({
       </nav>
 
       {activePet ? (
-        <div
-          ref={switcherRef}
-          className={cn("relative m-3 rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}
-        >
-          <div className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
-            <button
-              type="button"
-              onClick={() => setSwitcherOpen((o) => !o)}
-              className={cn(
-                "flex min-w-0 flex-1 items-center gap-2 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                collapsed && "justify-center",
-              )}
-              aria-label="Switch pet"
-              aria-haspopup="menu"
-              aria-expanded={switcherOpen}
-            >
-              <PetAvatar
-                name={activePet.name}
-                url={activePet.avatar_url}
-                species={activePet.species}
-                size={36}
-              />
-              {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{activePet.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {activePet.species}
-                    {activePet.breed ? ` · ${activePet.breed}` : ""}
-                  </div>
-                </div>
-              )}
-            </button>
-            {!collapsed && (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="rounded-md p-1.5 text-[color:var(--warm)] hover:bg-accent"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          {switcherOpen && (
+        <div ref={switcherRef} className={cn("m-3 space-y-2")}>
+          {switcherOpen && !collapsed && (
             <div
               role="menu"
-              className="absolute bottom-full left-0 right-0 mb-2 z-50 rounded-2xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+              className="rounded-2xl border border-border bg-card p-1 shadow-[var(--shadow-soft)]"
             >
               {(pets ?? []).map((p) => {
                 const isActive = p.id === activePet.id;
@@ -208,6 +166,47 @@ export function SideNav({
               </button>
             </div>
           )}
+          <div className={cn("rounded-2xl border border-border bg-card p-2", collapsed && "px-1")}>
+          <div className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
+            <button
+              type="button"
+              onClick={() => setSwitcherOpen((o) => !o)}
+              className={cn(
+                "flex min-w-0 flex-1 items-center gap-2 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                collapsed && "justify-center",
+              )}
+              aria-label="Switch pet"
+              aria-haspopup="menu"
+              aria-expanded={switcherOpen}
+            >
+              <PetAvatar
+                name={activePet.name}
+                url={activePet.avatar_url}
+                species={activePet.species}
+                size={36}
+              />
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{activePet.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {activePet.species}
+                    {activePet.breed ? ` · ${activePet.breed}` : ""}
+                  </div>
+                </div>
+              )}
+            </button>
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="rounded-md p-1.5 text-[color:var(--warm)] hover:bg-accent"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          </div>
         </div>
       ) : null}
     </aside>
