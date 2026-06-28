@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, LogOut, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,10 +79,11 @@ export function AppHeader({ title: _title }: { title?: string }) {
 
         <button
           type="button"
-          aria-label="Notifications"
+          aria-label="Settings"
+          onClick={() => navigate({ to: "/settings" })}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white shadow-[var(--shadow-soft)]"
         >
-          <Bell className="h-5 w-5 text-foreground" strokeWidth={1.75} />
+          <Settings className="h-5 w-5 text-foreground" strokeWidth={1.75} />
         </button>
       </div>
     </header>
