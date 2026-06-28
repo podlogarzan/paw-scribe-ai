@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -20,6 +21,8 @@ import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedPetPetIdRouteImport } from './routes/_authenticated/pet.$petId'
+import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authenticated/legal.terms'
+import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedEntryEntryIdRouteImport } from './routes/_authenticated/entry.$entryId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 
@@ -41,6 +44,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -77,6 +85,17 @@ const AuthenticatedPetPetIdRoute = AuthenticatedPetPetIdRouteImport.update({
   path: '/pet/$petId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLegalTermsRoute = AuthenticatedLegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLegalPrivacyRoute =
+  AuthenticatedLegalPrivacyRouteImport.update({
+    id: '/legal/privacy',
+    path: '/legal/privacy',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntryEntryIdRoute =
   AuthenticatedEntryEntryIdRouteImport.update({
     id: '/entry/$entryId',
@@ -98,9 +117,12 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -111,9 +133,12 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
@@ -127,9 +152,12 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
+  '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/_authenticated/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/_authenticated/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -143,9 +171,12 @@ export interface FileRouteTypes {
     | '/home'
     | '/onboarding'
     | '/profile'
+    | '/settings'
     | '/api/chat'
     | '/chat/$threadId'
     | '/entry/$entryId'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/pet/$petId'
     | '/chat/'
   fileRoutesByTo: FileRoutesByTo
@@ -156,9 +187,12 @@ export interface FileRouteTypes {
     | '/home'
     | '/onboarding'
     | '/profile'
+    | '/settings'
     | '/api/chat'
     | '/chat/$threadId'
     | '/entry/$entryId'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/pet/$petId'
     | '/chat'
   id:
@@ -171,9 +205,12 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
+    | '/_authenticated/settings'
     | '/api/chat'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/entry/$entryId'
+    | '/_authenticated/legal/privacy'
+    | '/_authenticated/legal/terms'
     | '/_authenticated/pet/$petId'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
@@ -214,6 +251,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -264,6 +308,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPetPetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/legal/terms': {
+      id: '/_authenticated/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof AuthenticatedLegalTermsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/legal/privacy': {
+      id: '/_authenticated/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof AuthenticatedLegalPrivacyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entry/$entryId': {
       id: '/_authenticated/entry/$entryId'
       path: '/entry/$entryId'
@@ -300,7 +358,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedEntryEntryIdRoute: typeof AuthenticatedEntryEntryIdRoute
+  AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
+  AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
   AuthenticatedPetPetIdRoute: typeof AuthenticatedPetPetIdRoute
 }
 
@@ -310,7 +371,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedEntryEntryIdRoute: AuthenticatedEntryEntryIdRoute,
+  AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
+  AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,
   AuthenticatedPetPetIdRoute: AuthenticatedPetPetIdRoute,
 }
 
