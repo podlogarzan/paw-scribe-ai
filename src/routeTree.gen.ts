@@ -21,6 +21,7 @@ import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedPetPetIdRouteImport } from './routes/_authenticated/pet.$petId'
+import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authenticated/legal.terms'
 import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedEntryEntryIdRouteImport } from './routes/_authenticated/entry.$entryId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
@@ -84,6 +85,11 @@ const AuthenticatedPetPetIdRoute = AuthenticatedPetPetIdRouteImport.update({
   path: '/pet/$petId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLegalTermsRoute = AuthenticatedLegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLegalPrivacyRoute =
   AuthenticatedLegalPrivacyRouteImport.update({
     id: '/legal/privacy',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/entry/$entryId': typeof AuthenticatedEntryEntryIdRoute
   '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/_authenticated/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/_authenticated/pet/$petId': typeof AuthenticatedPetPetIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/entry/$entryId'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/pet/$petId'
     | '/chat/'
   fileRoutesByTo: FileRoutesByTo
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/entry/$entryId'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/pet/$petId'
     | '/chat'
   id:
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/entry/$entryId'
     | '/_authenticated/legal/privacy'
+    | '/_authenticated/legal/terms'
     | '/_authenticated/pet/$petId'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
@@ -296,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPetPetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/legal/terms': {
+      id: '/_authenticated/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof AuthenticatedLegalTermsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/legal/privacy': {
       id: '/_authenticated/legal/privacy'
       path: '/legal/privacy'
@@ -342,6 +361,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedEntryEntryIdRoute: typeof AuthenticatedEntryEntryIdRoute
   AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
+  AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
   AuthenticatedPetPetIdRoute: typeof AuthenticatedPetPetIdRoute
 }
 
@@ -354,6 +374,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedEntryEntryIdRoute: AuthenticatedEntryEntryIdRoute,
   AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
+  AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,
   AuthenticatedPetPetIdRoute: AuthenticatedPetPetIdRoute,
 }
 
