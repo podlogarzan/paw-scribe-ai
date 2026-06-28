@@ -21,7 +21,6 @@ import { EmptyState } from "@/components/app/EmptyState";
 import { EntryDot, EntryBadge } from "@/components/app/EntryDot";
 import { NewEntryDialog } from "@/components/app/NewEntryDialog";
 import { PetChipStrip } from "@/components/app/PetChipStrip";
-import { PetHeroCard } from "@/components/app/PetHeroCard";
 import { AddPetDialog } from "@/components/app/AddPetDialog";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -219,22 +218,6 @@ function HomePage() {
           </div>
         )}
 
-        {/* Hero pet card */}
-        <section className="lg:hidden">
-          {(() => {
-            const activePet = pets.data?.find((p) => p.id === activePetId) ?? null;
-            return (
-              <PetHeroCard
-                pet={activePet}
-                onOpen={() =>
-                  activePet &&
-                  navigate({ to: "/pet/$petId", params: { petId: activePet.id } })
-                }
-              />
-            );
-          })()}
-        </section>
-
         {/* Upcoming strip */}
         <section className="mt-5 lg:hidden">
           <div className="mb-2 flex items-center justify-between">
@@ -275,8 +258,8 @@ function HomePage() {
           )}
         </section>
 
-        {/* Desktop / lg+ calendar */}
-        <section className="mt-6 hidden lg:mt-3 lg:block">
+        {/* Calendar */}
+        <section className="mt-4 lg:mt-3">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-bold">{format(monthAnchor, "MMMM yyyy")}</h2>
             <div className="flex gap-1">
